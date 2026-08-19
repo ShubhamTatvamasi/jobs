@@ -1,4 +1,4 @@
-# Hidden Job Engine
+# Hidden Jobs Engine
 
 A static, client-side job search engine tuned for Staff/Principal-level
 platform, DevOps, SRE, cloud-architecture and security roles at
