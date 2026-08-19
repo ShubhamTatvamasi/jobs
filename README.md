@@ -88,3 +88,76 @@ For example:
 That's much more targeted than searching `Remote US`.
 
 If by **"Remote US" you mean you want to work remotely *from the US*** (i.e., relocate to the US but work remotely), that's a different search strategy.
+
+
+---
+
+
+If you're looking for **US-based companies that hire globally remote employees**, use searches that explicitly exclude US-only jobs.
+
+### Best Google search prompts
+
+**General:**
+
+```text
+"Staff Platform Engineer" "remote" "worldwide" Kubernetes AWS
+```
+
+```text
+"Senior DevOps Engineer" "remote" "global" Kubernetes AWS Terraform
+```
+
+```text
+"Staff SRE" "remote" "anywhere in the world" Kubernetes
+```
+
+**US-company focused:**
+
+```text
+"Staff Platform Engineer" "remote worldwide" "United States" Kubernetes
+```
+
+```text
+"Senior DevOps Engineer" "global remote" "US company" AWS Kubernetes
+```
+
+```text
+"Platform Engineer" "work from anywhere" "United States" Kubernetes
+```
+
+### Search job boards directly
+
+```text
+site:boards.greenhouse.io "Platform Engineer" "remote" "worldwide"
+```
+
+```text
+site:jobs.lever.co "DevOps Engineer" "remote" "worldwide"
+```
+
+```text
+site:jobs.ashbyhq.com "Platform Engineer" "remote" "worldwide"
+```
+
+```text
+site:wellfound.com/jobs "DevOps Engineer" "remote" "worldwide"
+```
+
+### 🔥 For your profile
+
+I'd use this as your primary search:
+
+```text
+"Staff Platform Engineer" ("remote worldwide" OR "global remote" OR "work from anywhere") (Kubernetes OR AWS) Terraform
+```
+
+And this for senior roles:
+
+```text
+("Staff DevOps Engineer" OR "Staff SRE" OR "Staff Infrastructure Engineer")
+("remote worldwide" OR "global remote" OR "work from anywhere")
+(Kubernetes OR AWS) Terraform
+```
+
+**Important:** Don't include `India` if your goal is discovering **global-remote companies**. Once you find the company/job, check whether **India is an eligible hiring country**.
+
