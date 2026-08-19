@@ -12,14 +12,18 @@ if (typeof TITLES === "undefined" || typeof BOARDS === "undefined") {
 
 const state = {
   selectedClusters: new Set(["core"]),
-  remoteScope: "worldwide", // 'worldwide' | 'india' | 'apac' | 'any-noteus'
+  // Off by default — adding a mandatory "remote worldwide"/etc. exact-phrase
+  // clause to the query returned no results in practice, since most real job
+  // posts never contain that literal wording. Use the chips to opt back in
+  // and try it, or just read the cheat-sheet below and judge posts yourself.
+  remoteScope: "none",
 };
 
 const REMOTE_SCOPE_OPTIONS = [
+  { id: "none", label: "None (recommended)", terms: [] },
   { id: "worldwide", label: "Remote Worldwide", terms: ["remote worldwide", "work from anywhere", "global remote"] },
   { id: "india", label: "Remote - India", terms: ["remote india", "remote - india"] },
   { id: "apac", label: "Remote - APAC", terms: ["remote apac", "remote - apac"] },
-  { id: "noteus", label: "Exclude US-only remote", terms: ["-\"remote - us\"", "-\"remote - usa\""] },
 ];
 
 function init() {
@@ -123,11 +127,11 @@ function buildBooleanQuery() {
   } else if (skills.length > 1) {
     parts.push(`(${skills.join(" OR ")})`);
   }
-  // Remote-scope phrases are a soft signal, not a mandatory exact-match
-  // clause — most job posts never contain the literal phrase "remote
-  // worldwide". Group with parens so it stays optional (OR) rather than
-  // silently AND-ing unlikely exact phrases together.
-  if (scope) {
+  // Remote-scope phrases are opt-in (off by default) — most job posts never
+  // contain the literal phrase "remote worldwide", so forcing this clause in
+  // returned zero results in practice. Group with parens so, when enabled,
+  // it stays an optional OR rather than an AND of unlikely exact phrases.
+  if (scope && scope.terms.length) {
     const quoted = scope.terms.map((t) => `"${t}"`);
     parts.push(`(${quoted.join(" OR ")})`);
   }
@@ -165,8 +169,9 @@ function renderLinks() {
     a.href = board.build(query);
     a.target = "_blank";
     a.rel = "noopener noreferrer";
-    const subText = board.id === "himalayas"
-      ? "Search blocked from pre-filling (site JS-gated) — search manually →"
+    const noPrefill = new Set(["himalayas", "levelsfyi"]);
+    const subText = noPrefill.has(board.id)
+      ? "No working search deep link on this site — search manually →"
       : "Open pre-filtered search →";
     a.innerHTML = `
       <span class="card-badge">${board.kind}</span>

@@ -169,14 +169,16 @@ const BOARDS = [
     id: "levelsfyi",
     name: "Levels.fyi (comp research)",
     kind: "comp",
-    queryType: "boolean",
-    // levels.fyi has no working query-string search (verified: ?search=
-    // is silently ignored and renders the homepage). Route through Google
-    // site-search instead, which actually filters.
-    build: (q) =>
-      `https://www.google.com/search?q=${encodeURIComponent(
-        `site:levels.fyi ${q}`
-      )}`,
+    queryType: "plain",
+    // Verified: levels.fyi has NO working query-string deep link for this
+    // use case. ?search= and /jobs?query= are both client-JS-only and
+    // silently ignored server-side (identical listings with or without the
+    // param). /t/{title-slug} pages exist only for a handful of generic
+    // titles (software-engineer, product-manager) — none of this profile's
+    // titles (Solutions Architect, DevOps, SRE, Platform/Cloud Engineer)
+    // have one; those all 404. Link to /jobs and let the user type the
+    // search themselves rather than ship a param that does nothing.
+    build: () => `https://www.levels.fyi/jobs`,
   },
 ];
 
