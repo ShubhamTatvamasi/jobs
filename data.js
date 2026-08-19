@@ -1,7 +1,12 @@
-// Curated data for the Hidden Job Search Engine
-// Tailored to: Shubham Tatvamasi — Principal Solutions Architect
-// Multi-Cloud, Kubernetes, Post-Quantum Security | Based in India, seeking
-// globally-remote roles at US(-headquartered) companies.
+// ============================================================
+// Hidden Job Engine — data registry
+// Tuned for: Shubham Tatvamasi — Principal Solutions Architect
+// (multi-cloud, Kubernetes, GitOps, post-quantum security)
+//
+// Every API endpoint, company slug, and deep link below was
+// verified live on 2026-08-19 (HTTP 200 + CORS-open where the
+// browser fetches it directly).
+// ============================================================
 
 const PROFILE = {
   name: "Shubham Tatvamasi",
@@ -9,237 +14,217 @@ const PROFILE = {
   headline: "Principal Solutions Architect — Multi-Cloud, Kubernetes & Post-Quantum Security",
 };
 
-// Job titles ranked by target seniority/pay for this profile.
+// Role families used to match job titles. `re` runs against the job title
+// (and tags where available). Defaults follow the resume's target roles.
+const ROLE_FAMILIES = [
+  { key: "platform", label: "Platform / Infra", re: /(platform|infrastructure|\binfra\b)/i },
+  { key: "devops", label: "DevOps / CI-CD", re: /(devops|dev ops|ci\/?cd|release engineer|build engineer)/i },
+  { key: "sre", label: "SRE / Reliability", re: /(\bsre\b|site reliability|reliability engineer|production engineer)/i },
+  { key: "cloud", label: "Cloud / Solutions Architect", re: /(cloud (architect|engineer)|solutions? architect|cloud native|multi-?cloud)/i },
+  { key: "k8s", label: "Kubernetes", re: /(kubernetes|\bk8s\b|openshift|container platform)/i },
+  { key: "security", label: "Security / DevSecOps", re: /(security engineer|security architect|devsecops|zero trust|cryptograph|infrastructure security|cloud security|platform security)/i },
+];
+
+// Titles matching this are never engineering/architecture roles for this
+// profile, even when they contain words like "infrastructure" or "platform"
+// (e.g. "Tax Director - Infrastructure & Incentives", "Staff Product Manager,
+// Data Platform"). Tune freely.
+const EXCLUDE_TITLE_RE = /(product manager|product design|program manager|project manager|account (executive|manager)|sales|marketing|recruit|talent|sourcer|attorney|legal|counsel|paralegal|\btax\b|account(ant|ing)|payroll|people (ops|operations|partner)|human resources|customer success|community manager|content|copywriter|executive assistant|workplace|physician|clinical)/i;
+
+const SENIORITY_LEVELS = [
+  { id: "staff", label: "Staff / Principal +", re: /(staff|principal|distinguished|architect|\bhead\b|director|\bvp\b)/i },
+  { id: "senior", label: "Senior +", re: /(senior|\bsr\.?\b|staff|principal|lead|distinguished|architect|\bhead\b|director)/i },
+  { id: "any", label: "Any level", re: null },
+];
+
+const REMOTE_SCOPES = [
+  { id: "any-remote", label: "Any remote" },
+  { id: "global", label: "🌍 Global-friendly" },
+  { id: "india", label: "🇮🇳 India-eligible" },
+  { id: "us", label: "🇺🇸 US remote" },
+  { id: "all", label: "Everything (incl. on-site)" },
+];
+
+const MIN_SALARY_OPTIONS = [
+  { id: 0, label: "Any salary" },
+  { id: -1, label: "Has posted salary" },
+  { id: 150000, label: "≥ $150k" },
+  { id: 200000, label: "≥ $200k" },
+  { id: 250000, label: "≥ $250k" },
+  { id: 300000, label: "≥ $300k" },
+];
+
+const SORT_MODES = [
+  { id: "salary", label: "Highest salary" },
+  { id: "match", label: "Best match" },
+  { id: "newest", label: "Newest" },
+];
+
+// Job titles for the deep-link query builder, ranked by target pay.
 const TITLES = [
-  { label: "Principal Solutions Architect", weight: 5 },
-  { label: "Principal Platform Engineer", weight: 5 },
-  { label: "Staff Platform Engineer", weight: 5 },
-  { label: "Staff Infrastructure Engineer", weight: 4 },
-  { label: "Staff Site Reliability Engineer", weight: 4 },
-  { label: "Principal DevOps Engineer", weight: 4 },
-  { label: "Staff Cloud Architect", weight: 4 },
-  { label: "Kubernetes Platform Architect", weight: 4 },
-  { label: "DevSecOps Architect", weight: 3 },
-  { label: "Principal Security Architect (Cloud)", weight: 3 },
-  { label: "Distinguished Engineer, Infrastructure", weight: 5 },
+  { label: "Principal Platform Engineer" },
+  { label: "Principal Solutions Architect" },
+  { label: "Distinguished Engineer, Infrastructure" },
+  { label: "Staff Platform Engineer" },
+  { label: "Staff Infrastructure Engineer" },
+  { label: "Staff Site Reliability Engineer" },
+  { label: "Principal DevOps Engineer" },
+  { label: "Staff Cloud Architect" },
+  { label: "Kubernetes Platform Architect" },
+  { label: "Principal Security Architect" },
+  { label: "DevSecOps Architect" },
+  { label: "Senior Platform Engineer" },
 ];
 
-// Core skill clusters from the resume, used to build precise boolean queries.
+// Skill clusters from the resume — used by the deep-link query builder.
 const SKILL_CLUSTERS = [
-  {
-    key: "core",
-    label: "Core Platform",
-    terms: ["Kubernetes", "AWS", "Terraform", "GitOps"],
-  },
-  {
-    key: "multicloud",
-    label: "Multi-Cloud",
-    terms: ["AWS", "Azure", "GCP", "OpenStack"],
-  },
-  {
-    key: "security",
-    label: "Post-Quantum & Security",
-    terms: ["Post-Quantum", "Zero Trust", "cert-manager", "WireGuard"],
-  },
-  {
-    key: "sre",
-    label: "SRE & Observability",
-    terms: ["SRE", "Prometheus", "Grafana", "Incident Response"],
-  },
-  {
-    key: "cicd",
-    label: "CI/CD & GitOps",
-    terms: ["ArgoCD", "FluxCD", "GitHub Actions", "CI/CD"],
-  },
+  { key: "core", label: "Core Platform", terms: ["Kubernetes", "Terraform", "GitOps"] },
+  { key: "multicloud", label: "Multi-Cloud", terms: ["AWS", "Azure", "GCP", "OpenStack"] },
+  { key: "security", label: "Post-Quantum & Security", terms: ["Post-Quantum", "Zero Trust", "WireGuard"] },
+  { key: "sre", label: "SRE & Observability", terms: ["SRE", "Prometheus", "Grafana"] },
+  { key: "cicd", label: "CI/CD & GitOps", terms: ["ArgoCD", "FluxCD", "GitHub Actions"] },
+  { key: "airflow", label: "Airflow / Data Platform", terms: ["Airflow", "MLOps", "Data Platform"] },
 ];
 
-// Phrases that signal a role is genuinely open to remote-from-India /
-// worldwide candidates, vs. "Remote - US" which usually means US-residents-only.
+// ------------------------------------------------------------
+// The hidden-jobs channel: companies whose ATS boards expose a
+// public, CORS-open JSON API the browser can scan directly.
+// ats: greenhouse | ashby | lever | smartrecruiters
+// payTier: 3 = top-of-market, 2 = strong, 1 = solid
+// hiring: worldwide | multi-region | us-lean  (rough guide only)
+// ------------------------------------------------------------
+const ATS_COMPANIES = [
+  // Greenhouse
+  { name: "GitLab", ats: "greenhouse", slug: "gitlab", payTier: 2, hiring: "worldwide", note: "All-remote, transparent global comp calculator" },
+  { name: "Cloudflare", ats: "greenhouse", slug: "cloudflare", payTier: 2, hiring: "multi-region", note: "Edge + security platform heavyweight" },
+  { name: "Elastic", ats: "greenhouse", slug: "elastic", payTier: 2, hiring: "worldwide", note: "Distributed by design; hires in India" },
+  { name: "Datadog", ats: "greenhouse", slug: "datadog", payTier: 3, hiring: "multi-region", note: "Observability leader, top infra comp" },
+  { name: "MongoDB", ats: "greenhouse", slug: "mongodb", payTier: 2, hiring: "multi-region", note: "India engineering offices (Gurugram/Bengaluru)" },
+  { name: "Stripe", ats: "greenhouse", slug: "stripe", payTier: 3, hiring: "multi-region", note: "Top-tier comp; strong infra org" },
+  { name: "Databricks", ats: "greenhouse", slug: "databricks", payTier: 3, hiring: "multi-region", note: "Bengaluru hub; top-of-market comp" },
+  { name: "Anthropic", ats: "greenhouse", slug: "anthropic", payTier: 3, hiring: "us-lean", note: "Frontier AI; top-of-market comp" },
+  { name: "Okta", ats: "greenhouse", slug: "okta", payTier: 2, hiring: "multi-region", note: "IAM / Zero-Trust — direct security overlap" },
+  { name: "Coinbase", ats: "greenhouse", slug: "coinbase", payTier: 3, hiring: "us-lean", note: "Remote-first, top comp" },
+  { name: "Grafana Labs", ats: "greenhouse", slug: "grafanalabs", payTier: 2, hiring: "worldwide", note: "All-remote across 30+ countries; observability" },
+  { name: "Chainguard", ats: "greenhouse", slug: "chainguard", payTier: 2, hiring: "us-lean", note: "Supply-chain security; remote-first" },
+  { name: "Vercel", ats: "greenhouse", slug: "vercel", payTier: 2, hiring: "multi-region", note: "Frontend cloud; platform/edge roles" },
+  { name: "Tailscale", ats: "greenhouse", slug: "tailscale", payTier: 2, hiring: "us-lean", note: "WireGuard networking — direct resume overlap" },
+  { name: "Temporal", ats: "greenhouse", slug: "temporaltechnologies", payTier: 2, hiring: "us-lean", note: "Distributed systems; remote-friendly" },
+  { name: "Fastly", ats: "greenhouse", slug: "fastly", payTier: 1, hiring: "multi-region", note: "Edge compute / CDN infra" },
+  { name: "Cockroach Labs", ats: "greenhouse", slug: "cockroachlabs", payTier: 2, hiring: "us-lean", note: "Distributed SQL" },
+  { name: "Wiz", ats: "greenhouse", slug: "wizinc", payTier: 3, hiring: "multi-region", note: "Cloud security rocketship" },
+  { name: "Canonical", ats: "greenhouse", slug: "canonical", payTier: 1, hiring: "worldwide", note: "Fully remote worldwide (Ubuntu, MicroK8s) — hires in India" },
+  { name: "CoreWeave", ats: "greenhouse", slug: "coreweave", payTier: 3, hiring: "us-lean", note: "AI cloud buildout; aggressive comp" },
+  { name: "ClickHouse", ats: "greenhouse", slug: "clickhouse", payTier: 2, hiring: "worldwide", note: "Remote-first across 20+ countries" },
+  { name: "Twilio", ats: "greenhouse", slug: "twilio", payTier: 2, hiring: "multi-region", note: "Remote-friendly; India presence" },
+  { name: "Reddit", ats: "greenhouse", slug: "reddit", payTier: 3, hiring: "us-lean", note: "Large-scale infra org" },
+  { name: "Robinhood", ats: "greenhouse", slug: "robinhood", payTier: 3, hiring: "us-lean", note: "High US comp" },
+  { name: "Fivetran", ats: "greenhouse", slug: "fivetran", payTier: 2, hiring: "multi-region", note: "Data infra; Bengaluru offices" },
+  { name: "Dropbox", ats: "greenhouse", slug: "dropbox", payTier: 3, hiring: "us-lean", note: "Virtual-first" },
+  { name: "PagerDuty", ats: "greenhouse", slug: "pagerduty", payTier: 1, hiring: "multi-region", note: "Incident response — SRE overlap" },
+  { name: "Buildkite", ats: "greenhouse", slug: "buildkite", payTier: 1, hiring: "worldwide", note: "CI/CD; remote, APAC-friendly" },
+  { name: "Netlify", ats: "greenhouse", slug: "netlify", payTier: 1, hiring: "us-lean", note: "Platform / web infra" },
+  { name: "CircleCI", ats: "greenhouse", slug: "circleci", payTier: 1, hiring: "multi-region", note: "CI/CD" },
+  { name: "Pulumi", ats: "greenhouse", slug: "pulumicorporation", payTier: 2, hiring: "us-lean", note: "IaC — Terraform-adjacent" },
+  // Ashby (exposes real salary bands via its API)
+  { name: "OpenAI", ats: "ashby", slug: "openai", payTier: 3, hiring: "us-lean", note: "Top-of-market comp; SF-hybrid mostly" },
+  { name: "Notion", ats: "ashby", slug: "notion", payTier: 3, hiring: "us-lean", note: "High comp; infra roles" },
+  { name: "Ramp", ats: "ashby", slug: "ramp", payTier: 3, hiring: "us-lean", note: "High-growth fintech; strong infra pay" },
+  { name: "Replit", ats: "ashby", slug: "replit", payTier: 2, hiring: "us-lean", note: "Cloud dev platform; K8s-heavy" },
+  { name: "Docker", ats: "ashby", slug: "docker", payTier: 2, hiring: "worldwide", note: "Remote-first — direct container overlap" },
+  { name: "Supabase", ats: "ashby", slug: "supabase", payTier: 2, hiring: "worldwide", note: "Fully remote, hires worldwide" },
+  { name: "Render", ats: "ashby", slug: "render", payTier: 2, hiring: "us-lean", note: "Cloud platform (PaaS)" },
+  { name: "Linear", ats: "ashby", slug: "linear", payTier: 2, hiring: "multi-region", note: "Remote (US/EU)" },
+  { name: "Astronomer", ats: "ashby", slug: "astronomer", payTier: 2, hiring: "multi-region", note: "Airflow platform — your DAG-migration story lands here" },
+  { name: "Coder", ats: "ashby", slug: "coder", payTier: 2, hiring: "us-lean", note: "Remote dev environments on K8s" },
+  { name: "PostHog", ats: "ashby", slug: "posthog", payTier: 2, hiring: "worldwide", note: "Remote worldwide" },
+  { name: "Vanta", ats: "ashby", slug: "vanta", payTier: 2, hiring: "us-lean", note: "Security/compliance automation" },
+  { name: "Modal", ats: "ashby", slug: "modal", payTier: 3, hiring: "us-lean", note: "AI infra; serverless GPU cloud" },
+  { name: "Neon", ats: "ashby", slug: "neon", payTier: 2, hiring: "multi-region", note: "Serverless Postgres; remote EU/US" },
+  { name: "Railway", ats: "ashby", slug: "railway", payTier: 2, hiring: "worldwide", note: "PaaS; remote global" },
+  // Lever
+  { name: "Palantir", ats: "lever", slug: "palantir", payTier: 3, hiring: "us-lean", note: "Top pay; mostly on-site" },
+  { name: "Sysdig", ats: "lever", slug: "sysdig", payTier: 2, hiring: "multi-region", note: "Falco / K8s runtime security — CKS overlap" },
+  // SmartRecruiters
+  { name: "Mirantis", ats: "smartrecruiters", slug: "mirantis", webSlug: "Mirantis", payTier: 1, hiring: "worldwide", note: "Kubernetes + OpenStack — direct resume overlap" },
+];
+
+// High-pay targets whose ATS has no public CORS-open API — check manually.
+const EXTRA_TARGETS = [
+  { name: "HashiCorp (IBM)", careers: "https://www.hashicorp.com/careers", note: "Terraform/Vault — core resume overlap" },
+  { name: "Red Hat", careers: "https://www.redhat.com/en/jobs", note: "OpenShift; many India-remote reqs" },
+  { name: "SUSE / Rancher", careers: "https://www.suse.com/careers/", note: "Kubernetes-native, distributed teams" },
+  { name: "Automattic", careers: "https://automattic.com/work-with-us/", note: "Fully distributed, hires worldwide" },
+  { name: "1Password", careers: "https://1password.com/careers", note: "Security-first, remote" },
+  { name: "Akamai", careers: "https://www.akamai.com/careers", note: "Edge/security infra; India presence" },
+  { name: "Confluent", careers: "https://careers.confluent.io/", note: "Kafka/streaming infra" },
+  { name: "Snowflake", careers: "https://careers.snowflake.com/", note: "Top-of-market data infra comp" },
+  { name: "Palo Alto Networks", careers: "https://jobs.paloaltonetworks.com/", note: "Prisma Cloud; cloud security" },
+  { name: "Teleport", careers: "https://goteleport.com/careers/", note: "Infrastructure access; Zero Trust" },
+  { name: "Snyk", careers: "https://snyk.io/careers/", note: "DevSecOps" },
+  { name: "Chronosphere", careers: "https://chronosphere.io/careers/", note: "Observability; remote-first" },
+];
+
+// Aggregator + community APIs, all verified CORS-open (no key needed).
+const AGG_ENDPOINTS = {
+  remoteok: "https://remoteok.com/api",
+  remotive: (q) => `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(q)}&limit=100`,
+  jobicy: (q) => `https://jobicy.com/api/v2/remote-jobs?count=100&tag=${encodeURIComponent(q)}`,
+};
+
+// One search term per role family, for APIs that take a keyword.
+const FAMILY_SEARCH_TERMS = {
+  platform: "platform engineer",
+  devops: "devops",
+  sre: "sre",
+  cloud: "cloud architect",
+  k8s: "kubernetes",
+  security: "security engineer",
+};
+
+const HN_API = {
+  findThread: "https://hn.algolia.com/api/v1/search_by_date?tags=story,author_whoishiring&hitsPerPage=10",
+  comments: (storyId) => `https://hn.algolia.com/api/v1/search?tags=comment,story_${storyId}&hitsPerPage=1000`,
+  itemUrl: (id) => `https://news.ycombinator.com/item?id=${id}`,
+};
+
+// Deep links for the query-builder tab. {q} is filled with the built query.
+// queryType "boolean" gets quotes/OR syntax; "plain" gets bare keywords.
+const BOARDS = [
+  { id: "google", name: "Google", kind: "meta", queryType: "boolean", note: "Boolean web search",
+    build: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}` },
+  { id: "gh-xray", name: "Greenhouse X-ray", kind: "x-ray", queryType: "boolean", note: "Every Greenhouse company at once (verified indexed)",
+    build: (q) => `https://www.google.com/search?q=${encodeURIComponent(`site:job-boards.greenhouse.io ${q}`)}` },
+  { id: "lever-xray", name: "Lever X-ray", kind: "x-ray", queryType: "boolean", note: "site:jobs.lever.co across all companies",
+    build: (q) => `https://www.google.com/search?q=${encodeURIComponent(`site:jobs.lever.co ${q}`)}` },
+  { id: "ashby-xray", name: "Ashby X-ray", kind: "x-ray", queryType: "boolean", note: "site:jobs.ashbyhq.com across all companies",
+    build: (q) => `https://www.google.com/search?q=${encodeURIComponent(`site:jobs.ashbyhq.com ${q}`)}` },
+  { id: "linkedin", name: "LinkedIn Jobs", kind: "board", queryType: "plain", note: "Pre-filtered to Remote",
+    build: (q) => `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(q)}&f_WT=2` },
+  { id: "remoteok", name: "RemoteOK", kind: "board", queryType: "plain", note: "Remote-only board",
+    build: (q) => `https://remoteok.com/?search=${encodeURIComponent(q)}` },
+  { id: "wwr", name: "We Work Remotely", kind: "board", queryType: "plain", note: "Remote-only board",
+    build: (q) => `https://weworkremotely.com/remote-jobs/search?term=${encodeURIComponent(q)}` },
+  { id: "wellfound", name: "Wellfound", kind: "board", queryType: "plain", note: "Startup jobs — search opens, type query if not prefilled",
+    build: (q) => `https://wellfound.com/jobs?query=${encodeURIComponent(q)}&remote=true` },
+  { id: "hiringcafe", name: "Hiring.cafe", kind: "board", queryType: "plain", note: "Aggregates ATS boards — search manually",
+    build: () => `https://hiring.cafe/` },
+  { id: "himalayas", name: "Himalayas", kind: "board", queryType: "plain", note: "Remote board — search manually",
+    build: () => `https://himalayas.app/jobs` },
+  { id: "levels", name: "Levels.fyi", kind: "comp", queryType: "plain", note: "Compensation research — search manually",
+    build: () => `https://www.levels.fyi/jobs` },
+];
+
+// Remote-scope cheat sheet.
 const REMOTE_GOOD_PHRASES = [
-  "remote worldwide",
-  "global remote",
-  "work from anywhere",
-  "remote - international",
-  "remote - APAC",
-  "remote - India",
-  "anywhere in the world",
-  "EOR",
-  "contractor - India",
+  "remote worldwide", "global remote", "work from anywhere", "remote — international",
+  "remote — APAC", "remote — India", "anywhere in the world",
+  "we hire through an EOR (Deel / Remote.com / Oyster)", "contractor — India",
+  "async-first / timezone-flexible",
 ];
 
 const REMOTE_BAD_PHRASES = [
-  "Remote - US",
-  "Remote - USA",
-  "Remote - North America",
-  "must be authorized to work in the United States",
-  "US citizens only",
-];
-
-// Job boards / ATS platforms, each with a URL template.
-// {q} = URL-encoded query string.
-// queryType: "boolean" boards get the Google-style quotes/OR/parens query;
-// "plain" boards get a plain keyword string, since their own search boxes do
-// simple text matching and would search boolean syntax as literal characters.
-const BOARDS = [
-  {
-    id: "google",
-    name: "Google",
-    kind: "meta",
-    queryType: "boolean",
-    build: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}`,
-  },
-  {
-    id: "linkedin",
-    name: "LinkedIn Jobs",
-    kind: "board",
-    queryType: "plain",
-    build: (q) =>
-      `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(
-        q
-      )}&f_WT=2`, // f_WT=2 = Remote
-  },
-  // NOTE: site:boards.greenhouse.io / site:jobs.lever.co / site:jobs.ashbyhq.com
-  // / site:apply.workable.com used to work as a poor-man's cross-company ATS
-  // search, but verified (via Bing, since Google JS-walls curl) that these
-  // subdomains now return ZERO indexed pages — most companies redirect their
-  // old ATS-hosted board URL straight to a white-labeled careers page on
-  // their own domain (e.g. boards.greenhouse.io/stripe -> stripe.com/careers),
-  // so the raw ATS subdomain is no longer a meaningfully crawlable target.
-  // Replaced with plain-keyword general search instead of a dead site: filter.
-  {
-    id: "greenhouse",
-    name: "Greenhouse-hosted roles",
-    kind: "web",
-    queryType: "boolean",
-    build: (q) =>
-      `https://www.google.com/search?q=${encodeURIComponent(`${q} greenhouse`)}`,
-  },
-  {
-    id: "lever",
-    name: "Lever-hosted roles",
-    kind: "web",
-    queryType: "boolean",
-    build: (q) =>
-      `https://www.google.com/search?q=${encodeURIComponent(`${q} lever`)}`,
-  },
-  {
-    id: "ashby",
-    name: "Ashby-hosted roles",
-    kind: "web",
-    queryType: "boolean",
-    build: (q) =>
-      `https://www.google.com/search?q=${encodeURIComponent(`${q} ashby`)}`,
-  },
-  {
-    id: "remoteok",
-    name: "RemoteOK",
-    kind: "board",
-    queryType: "plain",
-    build: (q) => `https://remoteok.com/?search=${encodeURIComponent(q)}`,
-  },
-  {
-    id: "wellfound",
-    name: "Wellfound (AngelList Talent)",
-    kind: "board",
-    queryType: "plain",
-    build: (q) =>
-      `https://wellfound.com/jobs?query=${encodeURIComponent(q)}&remote=true`,
-  },
-  {
-    id: "weworkremotely",
-    name: "We Work Remotely",
-    kind: "board",
-    queryType: "plain",
-    build: (q) =>
-      `https://weworkremotely.com/remote-jobs/search?term=${encodeURIComponent(
-        q
-      )}`,
-  },
-  {
-    id: "himalayas",
-    name: "Himalayas",
-    kind: "board",
-    queryType: "plain",
-    // himalayas.app runs a Cloudflare JS challenge on every path, so its
-    // search query-param can't be verified via curl. Link to the base jobs
-    // listing (verified reachable in-browser) instead of guessing a param.
-    build: () => `https://himalayas.app/jobs`,
-  },
-  {
-    id: "levelsfyi",
-    name: "Levels.fyi (comp research)",
-    kind: "comp",
-    queryType: "plain",
-    // Verified: levels.fyi has NO working query-string deep link for this
-    // use case. ?search= and /jobs?query= are both client-JS-only and
-    // silently ignored server-side (identical listings with or without the
-    // param). /t/{title-slug} pages exist only for a handful of generic
-    // titles (software-engineer, product-manager) — none of this profile's
-    // titles (Solutions Architect, DevOps, SRE, Platform/Cloud Engineer)
-    // have one; those all 404. Link to /jobs and let the user type the
-    // search themselves rather than ship a param that does nothing.
-    build: () => `https://www.levels.fyi/jobs`,
-  },
-];
-
-// Live, no-auth JSON API sources fetched directly in-browser (CORS-open).
-const LIVE_APIS = [
-  {
-    id: "remoteok-api",
-    name: "RemoteOK",
-    url: "https://remoteok.com/api",
-    parse: (data, terms) => {
-      if (!Array.isArray(data)) return [];
-      return data
-        .filter((d) => d.position || d.title)
-        .filter((d) => {
-          const hay = `${d.position || d.title || ""} ${d.description || ""} ${(d.tags || []).join(" ")}`.toLowerCase();
-          return terms.some((t) => hay.includes(t.toLowerCase()));
-        })
-        .map((d) => ({
-          title: d.position || d.title,
-          company: d.company,
-          url: d.url || `https://remoteok.com/l/${d.id}`,
-          location: d.location || "Worldwide",
-          salary:
-            d.salary_min && d.salary_max
-              ? `$${Math.round(d.salary_min / 1000)}k–$${Math.round(
-                  d.salary_max / 1000
-                )}k`
-              : d.salary || "",
-          tags: d.tags || [],
-          source: "RemoteOK",
-          date: d.date || "",
-        }));
-    },
-  },
-  // NOTE: Himalayas' /jobs/api has no Access-Control-Allow-Origin header
-  // (verified via curl preflight), so browser fetches are blocked by CORS.
-  // It's kept as a deep-link board in BOARDS instead of a live source here.
-];
-
-// Highest-paying company clusters known for senior infra/platform pay + genuine
-// global-remote or India-inclusive hiring (curated from public compensation data
-// such as levels.fyi / Glassdoor bands — verify current openings on each site).
-const TARGET_COMPANIES = [
-  { name: "HashiCorp", note: "Terraform/Vault maker, remote-first, strong infra comp", careers: "https://www.hashicorp.com/en/careers/open-positions" },
-  { name: "GitLab", note: "All-remote by design, transparent global comp bands", careers: "https://about.gitlab.com/jobs/all-jobs/" },
-  { name: "Elastic", note: "Distributed-first, hires broadly outside US", careers: "https://www.elastic.co/careers/open-jobs" },
-  { name: "Automattic", note: "Fully distributed, no HQ, hires worldwide", careers: "https://automattic.com/work-with-us/" },
-  { name: "Cloudflare", note: "Strong platform/security org, some global-remote reqs", careers: "https://www.cloudflare.com/careers/jobs/" },
-  { name: "Datadog", note: "Observability leader, high infra comp, mixed remote policy", careers: "https://careers.datadoghq.com/" },
-  { name: "MongoDB", note: "Platform/infra roles, remote-friendly", careers: "https://www.mongodb.com/careers/" },
-  { name: "Chronosphere", note: "Observability startup, remote-first", careers: "https://chronosphere.io/careers/" },
-  { name: "Grafana Labs", note: "All-remote, deep Kubernetes/observability overlap", careers: "https://grafana.com/about/careers/" },
-  { name: "SUSE / Rancher", note: "Kubernetes-native, distributed workforce", careers: "https://www.suse.com/careers/" },
-  { name: "Canonical", note: "Fully remote company, strong infra/OSS overlap", careers: "https://canonical.com/careers/all" },
-  { name: "Red Hat", note: "OpenShift/Kubernetes, many remote reqs globally", careers: "https://www.redhat.com/en/jobs" },
-  { name: "1Password", note: "Security-first, all-remote", careers: "https://1password.com/careers/" },
-  { name: "Okta", note: "Zero Trust/IAM overlap with your security background", careers: "https://www.okta.com/company/careers/" },
-  { name: "Sysdig", note: "Kubernetes security, remote-friendly", careers: "https://sysdig.com/careers/" },
-  { name: "Palo Alto Networks (Prisma Cloud)", note: "Cloud security, some global-remote infra roles", careers: "https://jobs.paloaltonetworks.com/" },
-  { name: "Wiz", note: "Cloud security unicorn, rapidly hiring globally", careers: "https://www.wiz.io/careers" },
-  { name: "Akamai", note: "Edge/security infra, distributed teams", careers: "https://www.akamai.com/careers" },
-  { name: "Cockroach Labs", note: "Distributed DB, remote-first culture", careers: "https://www.cockroachlabs.com/careers/" },
-  { name: "Confluent", note: "Kafka/streaming infra, hybrid-remote", careers: "https://careers.confluent.io/" },
+  "Remote — US", "Remote — USA", "Remote — North America",
+  "must be authorized to work in the United States", "US citizens only",
+  "must overlap with PT 9–5", "W2 employees only",
 ];
