@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hidden Job Engine — Global Remote Search</title>
+<link rel="icon" type="image/png" href="job.png" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◎</span>
+      <span class="brand-text">Hidden&nbsp;Job&nbsp;Engine</span>
+    </div>
+    <div class="brand-sub">Global-remote roles at US companies — built for Shubham Tatvamasi</div>
+  </header>
+
+  <main class="wrap">
+
+    <section class="panel builder">
+      <h2>1 · Build your search</h2>
+
+      <div class="field">
+        <label>Job title</label>
+        <select id="titleSelect"></select>
+      </div>
+
+      <div class="field">
+        <label>Skill focus</label>
+        <div id="skillClusters" class="chip-row"></div>
+      </div>
+
+      <div class="field">
+        <label>Extra keywords <span class="hint">(optional, comma-separated)</span></label>
+        <input id="extraKeywords" type="text" placeholder="e.g. Post-Quantum, Zero Trust, Go" />
+      </div>
+
+      <div class="field">
+        <label>Remote scope</label>
+        <div id="remoteScope" class="chip-row"></div>
+      </div>
+
+      <div class="field-row">
+        <button id="buildBtn" class="primary">Generate search links</button>
+        <button id="liveBtn" class="secondary">Fetch live listings</button>
+      </div>
+
+      <div class="field">
+        <label>Query preview</label>
+        <code id="queryPreview" class="query-preview">—</code>
+      </div>
+    </section>
+
+    <section class="panel results" id="linksPanel">
+      <h2>2 · Targeted deep links</h2>
+      <p class="muted">Opens each board pre-filtered with your query and a global-remote filter baked in. Google/ATS links use <code>site:</code> search across every company on that platform at once.</p>
+      <div id="linksGrid" class="cards"></div>
+    </section>
+
+    <section class="panel results" id="livePanel">
+      <h2>3 · Live listings <span class="muted">(fetched right now, no key needed)</span></h2>
+      <div id="liveStatus" class="muted">Click "Fetch live listings" above to pull current openings from RemoteOK (CORS-open API), filtered to your query. Other boards below don't allow direct browser fetches — use their deep links instead.</div>
+      <div id="liveGrid" class="cards"></div>
+    </section>
+
+    <section class="panel">
+      <h2>4 · Curated high-pay target companies</h2>
+      <p class="muted">Known for strong infra/platform compensation and genuine global-remote or India-inclusive hiring. Verify current openings — hiring policy changes.</p>
+      <div id="companyGrid" class="cards companies"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Reading job posts — remote-scope cheat sheet</h2>
+      <div class="cheatsheet">
+        <div class="good">
+          <h3>✅ Usually means you're eligible</h3>
+          <ul id="goodPhrases"></ul>
+        </div>
+        <div class="bad">
+          <h3>❌ Usually US-residents only</h3>
+          <ul id="badPhrases"></ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    Static, client-side, no backend, no tracking. Data refreshes only when you click fetch.
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
