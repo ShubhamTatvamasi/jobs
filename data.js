@@ -126,6 +126,10 @@ const ATS_COMPANIES = [
   { name: "Pulumi", ats: "greenhouse", slug: "pulumicorporation", payTier: 2, hiring: "us-lean", note: "IaC — Terraform-adjacent" },
   { name: "Affirm", ats: "greenhouse", slug: "affirm", payTier: 2, hiring: "us-lean", note: "Fintech infra; verified live, strong Staff+ volume" },
   { name: "Samsara", ats: "greenhouse", slug: "samsara", payTier: 2, hiring: "us-lean", note: "IoT platform; verified live infra hiring" },
+  { name: "Huntress", ats: "greenhouse", slug: "huntress", payTier: 2, hiring: "worldwide", note: "Managed detection/security platform; genuinely remote-first US team — direct security overlap" },
+  { name: "Airbnb", ats: "greenhouse", slug: "airbnb", payTier: 3, hiring: "us-lean", note: "Top-of-market comp; real 'Remote - USA' tagged Staff platform roles" },
+  { name: "Pinterest", ats: "greenhouse", slug: "pinterest", payTier: 3, hiring: "us-lean", note: "Top-of-market comp; real 'Remote, US' tagged Principal/Staff platform roles" },
+  { name: "Postman", ats: "greenhouse", slug: "postman", payTier: 2, hiring: "us-lean", note: "API platform; Head of Infra/SRE + Principal Security roles" },
   // Ashby (exposes real salary bands via its API)
   { name: "OpenAI", ats: "ashby", slug: "openai", payTier: 3, hiring: "us-lean", note: "Top-of-market comp; SF-hybrid mostly" },
   { name: "Notion", ats: "ashby", slug: "notion", payTier: 3, hiring: "us-lean", note: "High comp; infra roles" },

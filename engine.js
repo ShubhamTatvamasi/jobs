@@ -64,7 +64,23 @@ const RC = {
   us: /(united states|\busa\b|\bu\.s\.|\bus\b|canada|north america|americas)/i,
   usState: /,\s*[A-Z]{2}(?:\s|$|\))/,
   remote: /(remote|distributed|flexible|work from home|wfh)/i,
+  // Greenhouse's convention for a remote-eligible-within-region req: either
+  // a region prefix ("Central - United States", "West Coast - United
+  // States") or several distinct cities/states joined together ("Austin;
+  // Boston; New York City; ... United States") — a single-office listing
+  // never lists more than one place. Neither form contains the word
+  // "remote", so RC.remote alone misses them.
+  multiLoc: /( - united states| - usa)\b/i,
 };
+
+// Greenhouse joins multiple offices with ";" ("Boston, MA; New York, NY").
+// Commas are part of one address's own city/state/country structure, so
+// they must NOT be treated as a list separator (that would misread a
+// single-office "San Jose, California, USA" as three locations).
+function looksMultiCity(loc) {
+  const parts = String(loc || "").split(";").map((s) => s.trim()).filter(Boolean);
+  return parts.length >= 2;
+}
 
 // loc: free-text location; flags: {isRemote, country} from structured APIs.
 function classifyRemote(loc, flags) {
@@ -78,7 +94,8 @@ function classifyRemote(loc, flags) {
   if (RC.global.test(l)) return "global";
   const usCountry = country === "us" || country === "usa" || country === "united states" || country === "ca" || country === "canada";
   if (RC.us.test(l) || RC.usState.test(l) || usCountry) {
-    return RC.remote.test(l) || f.isRemote ? "us" : "onsite";
+    const impliedRemote = RC.multiLoc.test(l) || looksMultiCity(l);
+    return RC.remote.test(l) || f.isRemote || impliedRemote ? "us" : "onsite";
   }
   if (RC.remote.test(l) || f.isRemote) return "remote";
   return l.trim() ? "onsite" : "remote";
@@ -146,21 +163,31 @@ const ATS_ADAPTERS = {
     apiUrl: (c) => `https://boards-api.greenhouse.io/v1/boards/${c.slug}/jobs`,
     boardUrl: (c) => `https://job-boards.greenhouse.io/${c.slug}`,
     normalize(c, data) {
-      return ((data && data.jobs) || []).map((j) => ({
-        id: `gh-${c.slug}-${j.id}`,
-        title: j.title || "",
-        company: c.name,
-        url: j.absolute_url || this.boardUrl(c),
-        location: (j.location && j.location.name) || "",
-        remoteClass: classifyRemote(j.location && j.location.name),
-        regions: remoteRegions(j.location && j.location.name),
-        salaryText: "",
-        salaryMax: 0,
-        postedAt: j.updated_at ? Date.parse(j.updated_at) || 0 : 0,
-        source: "Greenhouse",
-        dept: "",
-        tags: [],
-      }));
+      // Greenhouse exposes no structured remote flag, so a company known to
+      // hire "worldwide" gets its bare "United States[...]" listings (no
+      // "remote" keyword, single city) treated as remote-eligible — a
+      // dedicated office would show a specific city, not just the country.
+      const impliedRemoteCo = c.hiring === "worldwide";
+      return ((data && data.jobs) || []).map((j) => {
+        const locName = (j.location && j.location.name) || "";
+        const bareCountry = /^\s*(united states( of america)?|usa)\s*$/i.test(locName);
+        const isRemote = impliedRemoteCo && bareCountry;
+        return {
+          id: `gh-${c.slug}-${j.id}`,
+          title: j.title || "",
+          company: c.name,
+          url: j.absolute_url || this.boardUrl(c),
+          location: locName,
+          remoteClass: classifyRemote(locName, { isRemote }),
+          regions: remoteRegions(locName),
+          salaryText: "",
+          salaryMax: 0,
+          postedAt: j.updated_at ? Date.parse(j.updated_at) || 0 : 0,
+          source: "Greenhouse",
+          dept: "",
+          tags: [],
+        };
+      });
     },
   },
   ashby: {
