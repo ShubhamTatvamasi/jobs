@@ -29,7 +29,8 @@ APIs used are CORS-open, but a local server is more reliable.)
   X-ray searches (`site:job-boards.greenhouse.io` etc.).
 - **Filters** — role family, Staff/Principal+ seniority, remote scope
   (🌍 global / 🇮🇳 India-eligible / 🇺🇸 US), salary floor, and
-  highest-salary-first sorting.
+  highest-salary-first sorting. Defaults to **🇺🇸 US remote + has posted
+  salary**, since USD-paying US-remote roles are the current target.
 
 ## Files
 
@@ -41,4 +42,6 @@ APIs used are CORS-open, but a local server is more reliable.)
 | `engine.js` | pure logic: API adapters, salary parsing, remote classification, scoring (Node-testable) |
 | `app.js` | DOM glue, fetch orchestration, rendering |
 
-All endpoints, company slugs and deep links verified live on **2026-08-19**.
+All endpoints, company slugs and deep links verified live on **2026-09-07**
+(51 companies, 0 dead slugs; ClickHouse moved Greenhouse→Ashby, Temporal
+dropped its public API and moved to manual-check).

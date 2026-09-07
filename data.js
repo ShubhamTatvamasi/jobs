@@ -109,13 +109,11 @@ const ATS_COMPANIES = [
   { name: "Chainguard", ats: "greenhouse", slug: "chainguard", payTier: 2, hiring: "us-lean", note: "Supply-chain security; remote-first" },
   { name: "Vercel", ats: "greenhouse", slug: "vercel", payTier: 2, hiring: "multi-region", note: "Frontend cloud; platform/edge roles" },
   { name: "Tailscale", ats: "greenhouse", slug: "tailscale", payTier: 2, hiring: "us-lean", note: "WireGuard networking — direct resume overlap" },
-  { name: "Temporal", ats: "greenhouse", slug: "temporaltechnologies", payTier: 2, hiring: "us-lean", note: "Distributed systems; remote-friendly" },
   { name: "Fastly", ats: "greenhouse", slug: "fastly", payTier: 1, hiring: "multi-region", note: "Edge compute / CDN infra" },
   { name: "Cockroach Labs", ats: "greenhouse", slug: "cockroachlabs", payTier: 2, hiring: "us-lean", note: "Distributed SQL" },
   { name: "Wiz", ats: "greenhouse", slug: "wizinc", payTier: 3, hiring: "multi-region", note: "Cloud security rocketship" },
   { name: "Canonical", ats: "greenhouse", slug: "canonical", payTier: 1, hiring: "worldwide", note: "Fully remote worldwide (Ubuntu, MicroK8s) — hires in India" },
-  { name: "CoreWeave", ats: "greenhouse", slug: "coreweave", payTier: 3, hiring: "us-lean", note: "AI cloud buildout; aggressive comp" },
-  { name: "ClickHouse", ats: "greenhouse", slug: "clickhouse", payTier: 2, hiring: "worldwide", note: "Remote-first across 20+ countries" },
+  { name: "CoreWeave", ats: "greenhouse", slug: "coreweave", payTier: 3, hiring: "us-lean", note: "AI cloud buildout; aggressive comp; strong Staff/Principal infra volume" },
   { name: "Twilio", ats: "greenhouse", slug: "twilio", payTier: 2, hiring: "multi-region", note: "Remote-friendly; India presence" },
   { name: "Reddit", ats: "greenhouse", slug: "reddit", payTier: 3, hiring: "us-lean", note: "Large-scale infra org" },
   { name: "Robinhood", ats: "greenhouse", slug: "robinhood", payTier: 3, hiring: "us-lean", note: "High US comp" },
@@ -126,6 +124,8 @@ const ATS_COMPANIES = [
   { name: "Netlify", ats: "greenhouse", slug: "netlify", payTier: 1, hiring: "us-lean", note: "Platform / web infra" },
   { name: "CircleCI", ats: "greenhouse", slug: "circleci", payTier: 1, hiring: "multi-region", note: "CI/CD" },
   { name: "Pulumi", ats: "greenhouse", slug: "pulumicorporation", payTier: 2, hiring: "us-lean", note: "IaC — Terraform-adjacent" },
+  { name: "Affirm", ats: "greenhouse", slug: "affirm", payTier: 2, hiring: "us-lean", note: "Fintech infra; verified live, strong Staff+ volume" },
+  { name: "Samsara", ats: "greenhouse", slug: "samsara", payTier: 2, hiring: "us-lean", note: "IoT platform; verified live infra hiring" },
   // Ashby (exposes real salary bands via its API)
   { name: "OpenAI", ats: "ashby", slug: "openai", payTier: 3, hiring: "us-lean", note: "Top-of-market comp; SF-hybrid mostly" },
   { name: "Notion", ats: "ashby", slug: "notion", payTier: 3, hiring: "us-lean", note: "High comp; infra roles" },
@@ -142,6 +142,8 @@ const ATS_COMPANIES = [
   { name: "Modal", ats: "ashby", slug: "modal", payTier: 3, hiring: "us-lean", note: "AI infra; serverless GPU cloud" },
   { name: "Neon", ats: "ashby", slug: "neon", payTier: 2, hiring: "multi-region", note: "Serverless Postgres; remote EU/US" },
   { name: "Railway", ats: "ashby", slug: "railway", payTier: 2, hiring: "worldwide", note: "PaaS; remote global" },
+  { name: "ClickHouse", ats: "ashby", slug: "clickhouse", payTier: 2, hiring: "worldwide", note: "Remote-first across 20+ countries; moved off Greenhouse to Ashby — strong Staff+ infra volume" },
+  { name: "Cursor (Anysphere)", ats: "ashby", slug: "cursor", payTier: 3, hiring: "us-lean", note: "Top-of-market AI coding platform; verified live infra hiring" },
   // Lever
   { name: "Palantir", ats: "lever", slug: "palantir", payTier: 3, hiring: "us-lean", note: "Top pay; mostly on-site" },
   { name: "Sysdig", ats: "lever", slug: "sysdig", payTier: 2, hiring: "multi-region", note: "Falco / K8s runtime security — CKS overlap" },
@@ -155,7 +157,7 @@ const EXTRA_TARGETS = [
   { name: "Red Hat", careers: "https://www.redhat.com/en/jobs", note: "OpenShift; many India-remote reqs" },
   { name: "SUSE / Rancher", careers: "https://www.suse.com/careers/", note: "Kubernetes-native, distributed teams" },
   { name: "Automattic", careers: "https://automattic.com/work-with-us/", note: "Fully distributed, hires worldwide" },
-  { name: "1Password", careers: "https://1password.com/careers", note: "Security-first, remote" },
+  { name: "1Password", careers: "https://1password.com/careers", note: "Security-first, remote (Ashby board has 0 CORS-listed staff+ matches currently — check manually)" },
   { name: "Akamai", careers: "https://www.akamai.com/careers", note: "Edge/security infra; India presence" },
   { name: "Confluent", careers: "https://careers.confluent.io/", note: "Kafka/streaming infra" },
   { name: "Snowflake", careers: "https://careers.snowflake.com/", note: "Top-of-market data infra comp" },
@@ -163,6 +165,7 @@ const EXTRA_TARGETS = [
   { name: "Teleport", careers: "https://goteleport.com/careers/", note: "Infrastructure access; Zero Trust" },
   { name: "Snyk", careers: "https://snyk.io/careers/", note: "DevSecOps" },
   { name: "Chronosphere", careers: "https://chronosphere.io/careers/", note: "Observability; remote-first" },
+  { name: "Temporal", careers: "https://temporal.io/careers", note: "Distributed systems; moved off its public Greenhouse API — check manually" },
 ];
 
 // Aggregator + community APIs, all verified CORS-open (no key needed).

@@ -11,8 +11,8 @@ const state = {
   tab: "scanner",
   families: new Set(ROLE_FAMILIES.map((f) => f.key)),
   seniority: "staff",
-  scope: "any-remote",
-  minSalary: 0,
+  scope: "us",
+  minSalary: -1,
   keywords: "",
   sort: "salary",
   // fetched data (kept raw; filters re-apply instantly without refetching)
