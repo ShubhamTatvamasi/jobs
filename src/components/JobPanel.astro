@@ -1,0 +1,28 @@
+---
+// One live-fetch section (ATS scan, aggregators, HN). The client script
+// fills #<id>Status and #<id>List; everything else is static.
+interface Props {
+  id: string;
+  title: string;
+  lede: string;
+  action: string;
+  active?: boolean;
+}
+
+const { id, title, lede, action, active = false } = Astro.props;
+---
+
+<section id={`tab-${id}`} class="panel" data-tab-panel={id} hidden={!active}>
+  <header class="panel-head">
+    <div>
+      <h2>{title}</h2>
+      <p class="lede">{lede}</p>
+    </div>
+    <button id={`${id}Btn`} class="btn btn-primary" type="button">
+      <span class="btn-dot" aria-hidden="true"></span>{action}
+    </button>
+  </header>
+  <div id={`${id}Status`} class="status" aria-live="polite"></div>
+  <div id={`${id}BarWrap`} class="bar-wrap" hidden><div id={`${id}Bar`} class="bar"></div></div>
+  <div id={`${id}List`} class="job-list"></div>
+</section>

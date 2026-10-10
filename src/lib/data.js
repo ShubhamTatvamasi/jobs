@@ -1,14 +1,16 @@
 // ============================================================
-// Hidden Job Engine — data registry
+// Hidden Job Engine — data registry (ES module)
 // Tuned for: Shubham Tatvamasi — Principal Solutions Architect
 // (multi-cloud, Kubernetes, GitOps, post-quantum security)
 //
 // Every API endpoint, company slug, and deep link below was
-// verified live on 2026-08-19 (HTTP 200 + CORS-open where the
+// verified live on VERIFIED_ON (HTTP 200 + CORS-open where the
 // browser fetches it directly).
 // ============================================================
 
-const PROFILE = {
+export const VERIFIED_ON = "2026-09-07";
+
+export const PROFILE = {
   name: "Shubham Tatvamasi",
   location: "Noida, India",
   headline: "Principal Solutions Architect — Multi-Cloud, Kubernetes & Post-Quantum Security",
@@ -16,7 +18,7 @@ const PROFILE = {
 
 // Role families used to match job titles. `re` runs against the job title
 // (and tags where available). Defaults follow the resume's target roles.
-const ROLE_FAMILIES = [
+export const ROLE_FAMILIES = [
   { key: "platform", label: "Platform / Infra", re: /(platform|infrastructure|\binfra\b)/i },
   { key: "devops", label: "DevOps / CI-CD", re: /(devops|dev ops|ci\/?cd|release engineer|build engineer)/i },
   { key: "sre", label: "SRE / Reliability", re: /(\bsre\b|site reliability|reliability engineer|production engineer)/i },
@@ -29,15 +31,15 @@ const ROLE_FAMILIES = [
 // profile, even when they contain words like "infrastructure" or "platform"
 // (e.g. "Tax Director - Infrastructure & Incentives", "Staff Product Manager,
 // Data Platform"). Tune freely.
-const EXCLUDE_TITLE_RE = /(product manager|product design|program manager|project manager|account (executive|manager)|sales|marketing|recruit|talent|sourcer|attorney|legal|counsel|paralegal|\btax\b|account(ant|ing)|payroll|people (ops|operations|partner)|human resources|customer success|community manager|content|copywriter|executive assistant|workplace|physician|clinical)/i;
+export const EXCLUDE_TITLE_RE = /(product manager|product design|program manager|project manager|account (executive|manager)|sales|marketing|recruit|talent|sourcer|attorney|legal|counsel|paralegal|\btax\b|account(ant|ing)|payroll|people (ops|operations|partner)|human resources|customer success|community manager|content|copywriter|executive assistant|workplace|physician|clinical)/i;
 
-const SENIORITY_LEVELS = [
+export const SENIORITY_LEVELS = [
   { id: "staff", label: "Staff / Principal +", re: /(staff|principal|distinguished|architect|\bhead\b|director|\bvp\b)/i },
   { id: "senior", label: "Senior +", re: /(senior|\bsr\.?\b|staff|principal|lead|distinguished|architect|\bhead\b|director)/i },
   { id: "any", label: "Any level", re: null },
 ];
 
-const REMOTE_SCOPES = [
+export const REMOTE_SCOPES = [
   { id: "any-remote", label: "Any remote" },
   { id: "global", label: "🌍 Global-friendly" },
   { id: "india", label: "🇮🇳 India-eligible" },
@@ -45,7 +47,7 @@ const REMOTE_SCOPES = [
   { id: "all", label: "Everything (incl. on-site)" },
 ];
 
-const MIN_SALARY_OPTIONS = [
+export const MIN_SALARY_OPTIONS = [
   { id: 0, label: "Any salary" },
   { id: -1, label: "Has posted salary" },
   { id: 150000, label: "≥ $150k" },
@@ -54,14 +56,23 @@ const MIN_SALARY_OPTIONS = [
   { id: 300000, label: "≥ $300k" },
 ];
 
-const SORT_MODES = [
+// Initial filter state, shared by the server-rendered controls and the
+// client script so the page never flashes a different selection.
+export const DEFAULT_FILTERS = {
+  seniority: "staff",
+  scope: "us",
+  minSalary: 0,
+  sort: "salary",
+};
+
+export const SORT_MODES = [
   { id: "salary", label: "Highest salary" },
   { id: "match", label: "Best match" },
   { id: "newest", label: "Newest" },
 ];
 
 // Job titles for the deep-link query builder, ranked by target pay.
-const TITLES = [
+export const TITLES = [
   { label: "Principal Platform Engineer" },
   { label: "Principal Solutions Architect" },
   { label: "Distinguished Engineer, Infrastructure" },
@@ -77,7 +88,7 @@ const TITLES = [
 ];
 
 // Skill clusters from the resume — used by the deep-link query builder.
-const SKILL_CLUSTERS = [
+export const SKILL_CLUSTERS = [
   { key: "core", label: "Core Platform", terms: ["Kubernetes", "Terraform", "GitOps"] },
   { key: "multicloud", label: "Multi-Cloud", terms: ["AWS", "Azure", "GCP", "OpenStack"] },
   { key: "security", label: "Post-Quantum & Security", terms: ["Post-Quantum", "Zero Trust", "WireGuard"] },
@@ -93,7 +104,7 @@ const SKILL_CLUSTERS = [
 // payTier: 3 = top-of-market, 2 = strong, 1 = solid
 // hiring: worldwide | multi-region | us-lean  (rough guide only)
 // ------------------------------------------------------------
-const ATS_COMPANIES = [
+export const ATS_COMPANIES = [
   // Greenhouse
   { name: "GitLab", ats: "greenhouse", slug: "gitlab", payTier: 2, hiring: "worldwide", note: "All-remote, transparent global comp calculator" },
   { name: "Cloudflare", ats: "greenhouse", slug: "cloudflare", payTier: 2, hiring: "multi-region", note: "Edge + security platform heavyweight" },
@@ -156,7 +167,7 @@ const ATS_COMPANIES = [
 ];
 
 // High-pay targets whose ATS has no public CORS-open API — check manually.
-const EXTRA_TARGETS = [
+export const EXTRA_TARGETS = [
   { name: "HashiCorp (IBM)", careers: "https://www.hashicorp.com/careers", note: "Terraform/Vault — core resume overlap" },
   { name: "Red Hat", careers: "https://www.redhat.com/en/jobs", note: "OpenShift; many India-remote reqs" },
   { name: "SUSE / Rancher", careers: "https://www.suse.com/careers/", note: "Kubernetes-native, distributed teams" },
@@ -173,14 +184,14 @@ const EXTRA_TARGETS = [
 ];
 
 // Aggregator + community APIs, all verified CORS-open (no key needed).
-const AGG_ENDPOINTS = {
+export const AGG_ENDPOINTS = {
   remoteok: "https://remoteok.com/api",
   remotive: (q) => `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(q)}&limit=100`,
   jobicy: (q) => `https://jobicy.com/api/v2/remote-jobs?count=100&tag=${encodeURIComponent(q)}`,
 };
 
 // One search term per role family, for APIs that take a keyword.
-const FAMILY_SEARCH_TERMS = {
+export const FAMILY_SEARCH_TERMS = {
   platform: "platform engineer",
   devops: "devops",
   sre: "sre",
@@ -189,7 +200,7 @@ const FAMILY_SEARCH_TERMS = {
   security: "security engineer",
 };
 
-const HN_API = {
+export const HN_API = {
   findThread: "https://hn.algolia.com/api/v1/search_by_date?tags=story,author_whoishiring&hitsPerPage=10",
   comments: (storyId) => `https://hn.algolia.com/api/v1/search?tags=comment,story_${storyId}&hitsPerPage=1000`,
   itemUrl: (id) => `https://news.ycombinator.com/item?id=${id}`,
@@ -197,7 +208,7 @@ const HN_API = {
 
 // Deep links for the query-builder tab. {q} is filled with the built query.
 // queryType "boolean" gets quotes/OR syntax; "plain" gets bare keywords.
-const BOARDS = [
+export const BOARDS = [
   { id: "google", name: "Google", kind: "meta", queryType: "boolean", note: "Boolean web search",
     build: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}` },
   { id: "gh-xray", name: "Greenhouse X-ray", kind: "x-ray", queryType: "boolean", note: "Every Greenhouse company at once (verified indexed)",
@@ -223,14 +234,14 @@ const BOARDS = [
 ];
 
 // Remote-scope cheat sheet.
-const REMOTE_GOOD_PHRASES = [
+export const REMOTE_GOOD_PHRASES = [
   "remote worldwide", "global remote", "work from anywhere", "remote — international",
   "remote — APAC", "remote — India", "anywhere in the world",
   "we hire through an EOR (Deel / Remote.com / Oyster)", "contractor — India",
   "async-first / timezone-flexible",
 ];
 
-const REMOTE_BAD_PHRASES = [
+export const REMOTE_BAD_PHRASES = [
   "Remote — US", "Remote — USA", "Remote — North America",
   "must be authorized to work in the United States", "US citizens only",
   "must overlap with PT 9–5", "W2 employees only",

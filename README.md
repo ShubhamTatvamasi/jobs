@@ -2,19 +2,28 @@
 
 A static, client-side job search engine tuned for Staff/Principal-level
 platform, DevOps, SRE, cloud-architecture and security roles at
-high-paying US/global companies. No backend, no build step, no API keys,
-no tracking.
+high-paying US/global companies. Built with [Astro](https://astro.build);
+no backend, no API keys, no tracking.
 
-## Run it
+Live at **https://shubhamtatvamasi.com/jobs/**
+
+## Develop
 
 ```bash
-cd jobs
-python3 -m http.server 8080
-# open http://localhost:8080
+npm install
+npm run dev       # http://localhost:4321/jobs/
+npm test          # engine unit tests (node --test)
+npm run build     # static site → dist/
+npm run preview
 ```
 
-(Opening `index.html` directly via `file://` mostly works too, since all
-APIs used are CORS-open, but a local server is more reliable.)
+## Deploy
+
+Every push to `main` runs [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml),
+which tests, builds and publishes `dist/` to GitHub Pages
+(repo **Settings → Pages → Source: GitHub Actions**). The site is served
+under the `/jobs` base path of the `shubhamtatvamasi.com` user site — see
+`astro.config.mjs`.
 
 ## What it does
 
@@ -29,18 +38,25 @@ APIs used are CORS-open, but a local server is more reliable.)
   X-ray searches (`site:job-boards.greenhouse.io` etc.).
 - **Filters** — role family, Staff/Principal+ seniority, remote scope
   (🌍 global / 🇮🇳 India-eligible / 🇺🇸 US), salary floor, and
-  highest-salary-first sorting. Defaults to **🇺🇸 US remote + has posted
-  salary**, since USD-paying US-remote roles are the current target.
+  highest-salary-first sorting. Defaults to **🇺🇸 US remote**, sorted by
+  highest salary.
 
-## Files
+Sections are hash-routed (`#scan`, `#agg`, `#hn`, `#links`, `#companies`,
+`#guide`), so any tab can be linked directly. Light/dark theme follows the
+OS and can be toggled from the header.
 
-| File | Purpose |
+## Layout
+
+| Path | Purpose |
 | --- | --- |
-| `index.html` | page shell + tabs |
-| `style.css` | UI (dark/light via `prefers-color-scheme`) |
-| `data.js` | verified companies, endpoints, deep links, profile tuning |
-| `engine.js` | pure logic: API adapters, salary parsing, remote classification, scoring (Node-testable) |
-| `app.js` | DOM glue, fetch orchestration, rendering |
+| `src/pages/index.astro` | page shell; server-renders controls, companies, deep links, playbook |
+| `src/components/JobPanel.astro` | shared markup for the three live-fetch sections |
+| `src/layouts/Base.astro` | `<head>`, fonts, theme bootstrap |
+| `src/styles/global.css` | design tokens + layout |
+| `src/lib/data.js` | verified companies, endpoints, deep links, profile tuning |
+| `src/lib/engine.js` | pure logic: API adapters, salary parsing, remote classification, scoring |
+| `src/scripts/app.js` | client glue: tabs, filters, fetch orchestration, rendering |
+| `test/engine.test.js` | Node tests for `engine.js` |
 
 All endpoints, company slugs and deep links verified live on **2026-09-07**
 (55 companies, 0 dead slugs; ClickHouse moved Greenhouse→Ashby, Temporal

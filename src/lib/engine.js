@@ -3,8 +3,10 @@
 // Normalizes every source into one job shape:
 // { id, title, company, url, location, remoteClass, salaryText,
 //   salaryMax, postedAt, source, dept, tags, snippet }
-// Loaded in the browser after data.js; also loadable in Node for tests.
+// ES module: imported by the Astro page script and by Node tests.
 // ============================================================
+
+import { HN_API } from "./data.js";
 
 const REMOTE_CLASS_META = {
   global: { label: "🌍 Global", rank: 6 },
@@ -382,11 +384,8 @@ function normalizeHNComments(storyId, hits) {
     });
 }
 
-// data.js owns HN_API in the browser; keep a fallback so Node tests
-// can load this file standalone.
 function HN_API_ITEM_URL(id) {
-  if (typeof HN_API !== "undefined" && HN_API.itemUrl) return HN_API.itemUrl(id);
-  return `https://news.ycombinator.com/item?id=${id}`;
+  return HN_API.itemUrl(id);
 }
 
 // --- matching / filtering / sorting -------------------------
@@ -470,12 +469,10 @@ function buildPlainQuery(title, skills, extras) {
   return [title, ...(skills || []), ...(extras || [])].slice(0, 3).join(" ");
 }
 
-// --- Node export for tests -----------------------------------
-if (typeof module !== "undefined" && module.exports) {
-  module.exports = {
-    parseSalaryText, fmtSalaryNum, classifyRemote, remoteRegions, scopeAllows, stripHtml, safeUrl,
-    ATS_ADAPTERS, AGG_ADAPTERS, pickHiringThread, normalizeHNComments,
-    jobMatchesFamilies, scoreJob, applyFilters, sortJobs, dedupeJobs,
-    buildBooleanQuery, buildPlainQuery, REMOTE_CLASS_META,
-  };
-}
+// --- exports ------------------------------------------------
+export {
+  parseSalaryText, fmtSalaryNum, classifyRemote, remoteRegions, scopeAllows, stripHtml, safeUrl,
+  ATS_ADAPTERS, AGG_ADAPTERS, pickHiringThread, normalizeHNComments,
+  jobMatchesFamilies, scoreJob, applyFilters, sortJobs, dedupeJobs,
+  buildBooleanQuery, buildPlainQuery, REMOTE_CLASS_META,
+};
