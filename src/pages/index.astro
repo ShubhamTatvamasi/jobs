@@ -2,7 +2,7 @@
 import Base from "../layouts/Base.astro";
 import JobPanel from "../components/JobPanel.astro";
 import {
-  PROFILE, VERIFIED_ON, DEFAULT_FILTERS, ROLE_FAMILIES, SENIORITY_LEVELS, REMOTE_SCOPES,
+  VERIFIED_ON, DEFAULT_FILTERS, ROLE_FAMILIES, SENIORITY_LEVELS, REMOTE_SCOPES,
   MIN_SALARY_OPTIONS, SORT_MODES, TITLES, SKILL_CLUSTERS, ATS_COMPANIES, EXTRA_TARGETS,
   BOARDS, REMOTE_GOOD_PHRASES, REMOTE_BAD_PHRASES,
 } from "../lib/data.js";
@@ -35,7 +35,7 @@ const tips = [
   ["Salary data is leverage.", "Ashby boards publish real bands (shown on every row). Cross-check any offer against levels.fyi before negotiating."],
   ["“US-remote” isn't a closed door.", "Many companies hire international candidates as contractors or through EORs (Deel, Remote.com, Oyster) when the candidate is strong. Staff/Principal-level skills justify asking."],
   ["HN thread = founder access.", "Replies there go straight to hiring managers and founders — no ATS black hole. A new thread opens on the 1st of each month."],
-  ["Lead with your differentiators.", "Post-quantum Kubernetes (QubeSec), 100k-DAG Airflow migration, 80+ cluster GitOps, CNCF TSC seat — these separate you from every other DevOps résumé."],
+  ["Lead with your differentiators.", "Concrete scale (clusters run, migrations led, costs or incidents cut) and visible open-source or community work separate a Staff+ résumé from the pile."],
 ];
 ---
 
@@ -49,7 +49,6 @@ const tips = [
         <span class="brand-mark" aria-hidden="true">◎</span>
         <span class="brand-name">Hidden Jobs<span class="brand-thin"> Engine</span></span>
       </a>
-      <p class="topbar-meta">Tuned for <strong>{PROFILE.name}</strong> · {PROFILE.location}</p>
       <button id="themeBtn" class="icon-btn" type="button" aria-label="Toggle colour theme" title="Toggle theme">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z" /></svg>
       </button>
@@ -152,7 +151,7 @@ const tips = [
           <header class="panel-head">
             <div>
               <h2>Targeted deep links</h2>
-              <p class="lede">Builds a precise query from your profile and opens each board pre-filtered. X-ray links search every company on an ATS platform at once via Google.</p>
+              <p class="lede">Builds a precise query from a title and skill focus and opens each board pre-filtered. X-ray links search every company on an ATS platform at once via Google.</p>
             </div>
           </header>
           <div class="builder">
@@ -232,7 +231,7 @@ const tips = [
           <header class="panel-head">
             <div>
               <h2>Playbook</h2>
-              <p class="lede">Landing a high-paying US or global role from India.</p>
+              <p class="lede">Landing a high-paying remote role, wherever you're based.</p>
             </div>
           </header>
           <ol class="tips">

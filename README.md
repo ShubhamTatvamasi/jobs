@@ -53,7 +53,7 @@ OS and can be toggled from the header.
 | `src/components/JobPanel.astro` | shared markup for the three live-fetch sections |
 | `src/layouts/Base.astro` | `<head>`, fonts, theme bootstrap |
 | `src/styles/global.css` | design tokens + layout |
-| `src/lib/data.js` | verified companies, endpoints, deep links, profile tuning |
+| `src/lib/data.js` | verified companies, endpoints, deep links, role/skill tuning |
 | `src/lib/engine.js` | pure logic: API adapters, salary parsing, remote classification, scoring |
 | `src/scripts/app.js` | client glue: tabs, filters, fetch orchestration, rendering |
 | `test/engine.test.js` | Node tests for `engine.js` |
