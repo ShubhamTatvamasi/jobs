@@ -1,33 +1,47 @@
 // ============================================================
 // Hidden Job Engine — data registry (ES module)
-// Tuned for Staff/Principal platform, DevOps, SRE, cloud and
-// security roles at high-paying remote-friendly companies.
+// Tuned for senior AI-infrastructure roles: inference / model
+// serving, GPU clusters and data centers, ML platforms, and the
+// Kubernetes / DevOps / SRE work underneath them.
 //
 // Every API endpoint, company slug, and deep link below was
 // verified live on VERIFIED_ON (HTTP 200 + CORS-open where the
 // browser fetches it directly).
 // ============================================================
 
-export const VERIFIED_ON = "2026-09-07";
+export const VERIFIED_ON = "2026-10-10";
 
 // Role families used to match job titles. `re` runs against the job title
-// (and tags where available). Defaults cover the platform-engineering family.
+// (and tags where available). Ordered from most to least AI-specific;
+// `boost` adds to the match score so AI-specific titles outrank generic ones.
 export const ROLE_FAMILIES = [
-  { key: "platform", label: "Platform / Infra", re: /(platform|infrastructure|\binfra\b)/i },
-  { key: "devops", label: "DevOps / CI-CD", re: /(devops|dev ops|ci\/?cd|release engineer|build engineer)/i },
-  { key: "sre", label: "SRE / Reliability", re: /(\bsre\b|site reliability|reliability engineer|production engineer)/i },
-  { key: "cloud", label: "Cloud / Solutions Architect", re: /(cloud (architect|engineer)|solutions? architect|cloud native|multi-?cloud)/i },
-  { key: "k8s", label: "Kubernetes", re: /(kubernetes|\bk8s\b|openshift|container platform)/i },
-  { key: "security", label: "Security / DevSecOps", re: /(security engineer|security architect|devsecops|zero trust|cryptograph|infrastructure security|cloud security|platform security)/i },
+  { key: "inference", boost: 3, label: "Inference / Model serving", re: /(inference|model serving|serving (infra|platform|systems)|llm serving|vllm|triton|tensorrt|sglang|kserve)/i },
+  { key: "gpu", boost: 3, label: "GPU / HPC clusters", re: /(\bgpus?\b|accelerator|cuda|\bhpc\b|supercomput|(compute|cluster) (infra|platform|engineer|architect|management)|fleet (engineer|management|reliability)|\bslurm\b)/i },
+  { key: "mlinfra", boost: 2, label: "AI / ML platform", re: /(ml ?infra|machine learning infra|ai infra|ml platform|ai platform|ml ?ops|llm ?ops|training (infra|platform)|research infra|ai cloud)/i },
+  { key: "datacenter", boost: 1, label: "Data center", re: /(data ?cent(er|re)|datacenter|critical (facilities|environment)|infiniband|\brdma\b|roce|network (engineer|architect)|hardware (engineer|reliability))/i },
+  { key: "k8s", boost: 1, label: "Kubernetes", re: /(kubernetes|\bk8s\b|container platform|orchestration|openshift)/i },
+  { key: "platform", label: "Platform / DevOps / SRE", re: /(platform|infrastructure|\binfra\b|devops|\bsre\b|site reliability|reliability engineer|production engineer|cloud engineer)/i },
 ];
 
-// Titles matching this are never engineering/architecture roles, even when they contain words like "infrastructure" or "platform"
-// (e.g. "Tax Director - Infrastructure & Incentives", "Staff Product Manager,
-// Data Platform"). Tune freely.
-export const EXCLUDE_TITLE_RE = /(product manager|product design|program manager|project manager|account (executive|manager)|sales|marketing|recruit|talent|sourcer|attorney|legal|counsel|paralegal|\btax\b|account(ant|ing)|payroll|people (ops|operations|partner)|human resources|customer success|community manager|content|copywriter|executive assistant|workplace|physician|clinical)/i;
+// Titles matching this are never engineering/architecture roles, even when
+// they contain words like "infrastructure" or "platform" (e.g. "Tax Director -
+// Infrastructure & Incentives", "Staff Product Manager, Data Platform",
+// "Construction Project Manager, Data Centers"). Facility trades (electrical,
+// mechanical, controls, commissioning) and hardware manufacturing are out of
+// scope for software/infra searches. Tune freely.
+export const EXCLUDE_TITLE_RE = /(product manage|product design|program manag|project manag|\baccounts?\b|field cto|solutions consultant|sales|marketing|recruit|talent|sourcer|attorney|legal|counsel|paralegal|\btax\b|account(ant|ing)|payroll|people (ops|operations|partner)|human resources|customer success|community|content|copywriter|executive assistant|workplace|physician|clinical|financ|construction|real estate|procurement|supply chain|sourcing|site selection|energy (development|procurement)|government affairs|policy|manufactur|pcba|mechanical|electrical|\bhvac\b|controls (engineer|technician)|commissioning|quality engineer)/i;
 
+// Titles that state a level. A title with none of these words ("Software
+// Engineer, Dedicated Inference", "Member of Technical Staff") is common at
+// AI startups and labs, which often level after the interview loop.
+const LEVELLED_RE = /(junior|\bjr\.?\b|intern|associate|entry|new grad|graduate|apprentice|senior|\bsr\.?\b|mid[- ]?level|\b(i|ii|iii|iv|1|2|3)\b|technician|\blead\b|manager)/i;
+// "Member of Technical Staff" spans several levels, so it is not a Staff signal.
+const STAFF_RE = /((?<!technical )staff|principal|distinguished|architect|\bhead\b|director|\bvp\b|fellow)/i;
+
+// `re` only needs a .test(title) method, so a level can be a predicate.
 export const SENIORITY_LEVELS = [
-  { id: "staff", label: "Staff / Principal +", re: /(staff|principal|distinguished|architect|\bhead\b|director|\bvp\b)/i },
+  { id: "staff-open", label: "Staff+ or unlevelled", re: { test: (t) => STAFF_RE.test(t) || !LEVELLED_RE.test(t) } },
+  { id: "staff", label: "Staff / Principal +", re: STAFF_RE },
   { id: "senior", label: "Senior +", re: /(senior|\bsr\.?\b|staff|principal|lead|distinguished|architect|\bhead\b|director)/i },
   { id: "any", label: "Any level", re: null },
 ];
@@ -43,16 +57,16 @@ export const REMOTE_SCOPES = [
 export const MIN_SALARY_OPTIONS = [
   { id: 0, label: "Any salary" },
   { id: -1, label: "Has posted salary" },
-  { id: 150000, label: "≥ $150k" },
   { id: 200000, label: "≥ $200k" },
   { id: 250000, label: "≥ $250k" },
   { id: 300000, label: "≥ $300k" },
+  { id: 400000, label: "≥ $400k" },
 ];
 
 // Initial filter state, shared by the server-rendered controls and the
 // client script so the page never flashes a different selection.
 export const DEFAULT_FILTERS = {
-  seniority: "staff",
+  seniority: "staff-open",
   scope: "us",
   minSalary: 0,
   sort: "salary",
@@ -64,116 +78,132 @@ export const SORT_MODES = [
   { id: "newest", label: "Newest" },
 ];
 
-// Job titles for the deep-link query builder, ranked by target pay.
+// Job titles for the deep-link query builder — the wording AI-infra
+// employers actually post, most specific first.
 export const TITLES = [
-  { label: "Principal Platform Engineer" },
-  { label: "Principal Solutions Architect" },
-  { label: "Distinguished Engineer, Infrastructure" },
-  { label: "Staff Platform Engineer" },
-  { label: "Staff Infrastructure Engineer" },
+  { label: "Inference Infrastructure Engineer" },
+  { label: "ML Infrastructure Engineer" },
+  { label: "AI Infrastructure Engineer" },
+  { label: "GPU Infrastructure Engineer" },
+  { label: "HPC Engineer" },
+  { label: "Staff Software Engineer, Inference" },
+  { label: "Member of Technical Staff, Infrastructure" },
+  { label: "AI Platform Engineer" },
+  { label: "GPU Cluster Architect" },
+  { label: "Data Center Architect" },
+  { label: "Kubernetes Platform Engineer" },
   { label: "Staff Site Reliability Engineer" },
-  { label: "Principal DevOps Engineer" },
-  { label: "Staff Cloud Architect" },
-  { label: "Kubernetes Platform Architect" },
-  { label: "Principal Security Architect" },
-  { label: "DevSecOps Architect" },
-  { label: "Senior Platform Engineer" },
+  { label: "Principal Platform Engineer" },
 ];
 
-// Skill clusters — used by the deep-link query builder.
+// Skill clusters — used by the deep-link query builder and as boost ideas.
 export const SKILL_CLUSTERS = [
-  { key: "core", label: "Core Platform", terms: ["Kubernetes", "Terraform", "GitOps"] },
-  { key: "multicloud", label: "Multi-Cloud", terms: ["AWS", "Azure", "GCP", "OpenStack"] },
-  { key: "security", label: "Post-Quantum & Security", terms: ["Post-Quantum", "Zero Trust", "WireGuard"] },
-  { key: "sre", label: "SRE & Observability", terms: ["SRE", "Prometheus", "Grafana"] },
-  { key: "cicd", label: "CI/CD & GitOps", terms: ["ArgoCD", "FluxCD", "GitHub Actions"] },
-  { key: "airflow", label: "Airflow / Data Platform", terms: ["Airflow", "MLOps", "Data Platform"] },
+  { key: "serving", label: "Model serving", terms: ["vLLM", "KServe", "Triton", "SGLang"] },
+  { key: "gpu", label: "GPU operations", terms: ["GPU", "CUDA", "DCGM", "GPU Operator"] },
+  { key: "cluster", label: "HPC & networking", terms: ["InfiniBand", "RDMA", "Slurm", "NCCL"] },
+  { key: "k8s", label: "Kubernetes & GitOps", terms: ["Kubernetes", "Helm", "Argo CD", "Flux"] },
+  { key: "scale", label: "Autoscaling & observability", terms: ["KEDA", "Prometheus", "Grafana", "OpenTelemetry"] },
+  { key: "dist", label: "Distributed compute", terms: ["Ray", "Kueue", "PyTorch", "Distributed training"] },
+  { key: "cloud", label: "Cloud & IaC", terms: ["Terraform", "AWS", "GCP", "Azure"] },
 ];
 
 // ------------------------------------------------------------
 // The hidden-jobs channel: companies whose ATS boards expose a
 // public, CORS-open JSON API the browser can scan directly.
 // ats: greenhouse | ashby | lever | smartrecruiters
+// group: gpu-cloud | inference | lab | silicon | platform
 // payTier: 3 = top-of-market, 2 = strong, 1 = solid
-// hiring: worldwide | multi-region | us-lean  (rough guide only)
+// hiring: worldwide | multi-region | us-lean  (measured from each board's
+//   current location mix on VERIFIED_ON; a rough guide only)
 // ------------------------------------------------------------
-export const ATS_COMPANIES = [
-  // Greenhouse
-  { name: "GitLab", ats: "greenhouse", slug: "gitlab", payTier: 2, hiring: "worldwide", note: "All-remote, transparent global comp calculator" },
-  { name: "Cloudflare", ats: "greenhouse", slug: "cloudflare", payTier: 2, hiring: "multi-region", note: "Edge + security platform heavyweight" },
-  { name: "Elastic", ats: "greenhouse", slug: "elastic", payTier: 2, hiring: "worldwide", note: "Distributed by design; hires in India" },
-  { name: "Datadog", ats: "greenhouse", slug: "datadog", payTier: 3, hiring: "multi-region", note: "Observability leader, top infra comp" },
-  { name: "MongoDB", ats: "greenhouse", slug: "mongodb", payTier: 2, hiring: "multi-region", note: "India engineering offices (Gurugram/Bengaluru)" },
-  { name: "Stripe", ats: "greenhouse", slug: "stripe", payTier: 3, hiring: "multi-region", note: "Top-tier comp; strong infra org" },
-  { name: "Databricks", ats: "greenhouse", slug: "databricks", payTier: 3, hiring: "multi-region", note: "Bengaluru hub; top-of-market comp" },
-  { name: "Anthropic", ats: "greenhouse", slug: "anthropic", payTier: 3, hiring: "us-lean", note: "Frontier AI; top-of-market comp" },
-  { name: "Okta", ats: "greenhouse", slug: "okta", payTier: 2, hiring: "multi-region", note: "IAM / Zero Trust" },
-  { name: "Coinbase", ats: "greenhouse", slug: "coinbase", payTier: 3, hiring: "us-lean", note: "Remote-first, top comp" },
-  { name: "Grafana Labs", ats: "greenhouse", slug: "grafanalabs", payTier: 2, hiring: "worldwide", note: "All-remote across 30+ countries; observability" },
-  { name: "Chainguard", ats: "greenhouse", slug: "chainguard", payTier: 2, hiring: "us-lean", note: "Supply-chain security; remote-first" },
-  { name: "Vercel", ats: "greenhouse", slug: "vercel", payTier: 2, hiring: "multi-region", note: "Frontend cloud; platform/edge roles" },
-  { name: "Tailscale", ats: "greenhouse", slug: "tailscale", payTier: 2, hiring: "us-lean", note: "WireGuard-based networking" },
-  { name: "Fastly", ats: "greenhouse", slug: "fastly", payTier: 1, hiring: "multi-region", note: "Edge compute / CDN infra" },
-  { name: "Cockroach Labs", ats: "greenhouse", slug: "cockroachlabs", payTier: 2, hiring: "us-lean", note: "Distributed SQL" },
-  { name: "Wiz", ats: "greenhouse", slug: "wizinc", payTier: 3, hiring: "multi-region", note: "Cloud security rocketship" },
-  { name: "Canonical", ats: "greenhouse", slug: "canonical", payTier: 1, hiring: "worldwide", note: "Fully remote worldwide (Ubuntu, MicroK8s) — hires in India" },
-  { name: "CoreWeave", ats: "greenhouse", slug: "coreweave", payTier: 3, hiring: "us-lean", note: "AI cloud buildout; aggressive comp; strong Staff/Principal infra volume" },
-  { name: "Twilio", ats: "greenhouse", slug: "twilio", payTier: 2, hiring: "multi-region", note: "Remote-friendly; India presence" },
-  { name: "Reddit", ats: "greenhouse", slug: "reddit", payTier: 3, hiring: "us-lean", note: "Large-scale infra org" },
-  { name: "Robinhood", ats: "greenhouse", slug: "robinhood", payTier: 3, hiring: "us-lean", note: "High US comp" },
-  { name: "Fivetran", ats: "greenhouse", slug: "fivetran", payTier: 2, hiring: "multi-region", note: "Data infra; Bengaluru offices" },
-  { name: "Dropbox", ats: "greenhouse", slug: "dropbox", payTier: 3, hiring: "us-lean", note: "Virtual-first" },
-  { name: "PagerDuty", ats: "greenhouse", slug: "pagerduty", payTier: 1, hiring: "multi-region", note: "Incident response platform" },
-  { name: "Buildkite", ats: "greenhouse", slug: "buildkite", payTier: 1, hiring: "worldwide", note: "CI/CD; remote, APAC-friendly" },
-  { name: "Netlify", ats: "greenhouse", slug: "netlify", payTier: 1, hiring: "us-lean", note: "Platform / web infra" },
-  { name: "CircleCI", ats: "greenhouse", slug: "circleci", payTier: 1, hiring: "multi-region", note: "CI/CD" },
-  { name: "Pulumi", ats: "greenhouse", slug: "pulumicorporation", payTier: 2, hiring: "us-lean", note: "IaC — Terraform-adjacent" },
-  { name: "Affirm", ats: "greenhouse", slug: "affirm", payTier: 2, hiring: "us-lean", note: "Fintech infra; verified live, strong Staff+ volume" },
-  { name: "Samsara", ats: "greenhouse", slug: "samsara", payTier: 2, hiring: "us-lean", note: "IoT platform; verified live infra hiring" },
-  { name: "Huntress", ats: "greenhouse", slug: "huntress", payTier: 2, hiring: "worldwide", note: "Managed detection/security platform; genuinely remote-first US team" },
-  { name: "Airbnb", ats: "greenhouse", slug: "airbnb", payTier: 3, hiring: "us-lean", note: "Top-of-market comp; real 'Remote - USA' tagged Staff platform roles" },
-  { name: "Pinterest", ats: "greenhouse", slug: "pinterest", payTier: 3, hiring: "us-lean", note: "Top-of-market comp; real 'Remote, US' tagged Principal/Staff platform roles" },
-  { name: "Postman", ats: "greenhouse", slug: "postman", payTier: 2, hiring: "us-lean", note: "API platform; Head of Infra/SRE + Principal Security roles" },
-  // Ashby (exposes real salary bands via its API)
-  { name: "OpenAI", ats: "ashby", slug: "openai", payTier: 3, hiring: "us-lean", note: "Top-of-market comp; SF-hybrid mostly" },
-  { name: "Notion", ats: "ashby", slug: "notion", payTier: 3, hiring: "us-lean", note: "High comp; infra roles" },
-  { name: "Ramp", ats: "ashby", slug: "ramp", payTier: 3, hiring: "us-lean", note: "High-growth fintech; strong infra pay" },
-  { name: "Replit", ats: "ashby", slug: "replit", payTier: 2, hiring: "us-lean", note: "Cloud dev platform; K8s-heavy" },
-  { name: "Docker", ats: "ashby", slug: "docker", payTier: 2, hiring: "worldwide", note: "Remote-first; container tooling" },
-  { name: "Supabase", ats: "ashby", slug: "supabase", payTier: 2, hiring: "worldwide", note: "Fully remote, hires worldwide" },
-  { name: "Render", ats: "ashby", slug: "render", payTier: 2, hiring: "us-lean", note: "Cloud platform (PaaS)" },
-  { name: "Linear", ats: "ashby", slug: "linear", payTier: 2, hiring: "multi-region", note: "Remote (US/EU)" },
-  { name: "Astronomer", ats: "ashby", slug: "astronomer", payTier: 2, hiring: "multi-region", note: "Managed Apache Airflow platform" },
-  { name: "Coder", ats: "ashby", slug: "coder", payTier: 2, hiring: "us-lean", note: "Remote dev environments on K8s" },
-  { name: "PostHog", ats: "ashby", slug: "posthog", payTier: 2, hiring: "worldwide", note: "Remote worldwide" },
-  { name: "Vanta", ats: "ashby", slug: "vanta", payTier: 2, hiring: "us-lean", note: "Security/compliance automation" },
-  { name: "Modal", ats: "ashby", slug: "modal", payTier: 3, hiring: "us-lean", note: "AI infra; serverless GPU cloud" },
-  { name: "Neon", ats: "ashby", slug: "neon", payTier: 2, hiring: "multi-region", note: "Serverless Postgres; remote EU/US" },
-  { name: "Railway", ats: "ashby", slug: "railway", payTier: 2, hiring: "worldwide", note: "PaaS; remote global" },
-  { name: "ClickHouse", ats: "ashby", slug: "clickhouse", payTier: 2, hiring: "worldwide", note: "Remote-first across 20+ countries; moved off Greenhouse to Ashby — strong Staff+ infra volume" },
-  { name: "Cursor (Anysphere)", ats: "ashby", slug: "cursor", payTier: 3, hiring: "us-lean", note: "Top-of-market AI coding platform; verified live infra hiring" },
-  // Lever
-  { name: "Palantir", ats: "lever", slug: "palantir", payTier: 3, hiring: "us-lean", note: "Top pay; mostly on-site" },
-  { name: "Sysdig", ats: "lever", slug: "sysdig", payTier: 2, hiring: "multi-region", note: "Falco / K8s runtime security" },
-  // SmartRecruiters
-  { name: "Mirantis", ats: "smartrecruiters", slug: "mirantis", webSlug: "Mirantis", payTier: 1, hiring: "worldwide", note: "Kubernetes + OpenStack" },
+export const COMPANY_GROUPS = [
+  { id: "gpu-cloud", label: "GPU clouds & AI data centers" },
+  { id: "inference", label: "Inference & model-serving platforms" },
+  { id: "lab", label: "Frontier labs & AI-native products" },
+  { id: "silicon", label: "AI silicon" },
+  { id: "platform", label: "ML platforms & cloud-native infra" },
 ];
 
-// High-pay targets whose ATS has no public CORS-open API — check manually.
+export const ATS_COMPANIES = [
+  // GPU clouds & AI data centers
+  { group: "gpu-cloud", name: "CoreWeave", ats: "greenhouse", slug: "coreweave", payTier: 3, hiring: "us-lean", note: "Largest neocloud; heavy data-center and fleet-engineering hiring, mostly on-site" },
+  { group: "gpu-cloud", name: "Lambda", ats: "ashby", slug: "lambda", payTier: 3, hiring: "us-lean", note: "GPU cloud; posts salary bands, strong Staff+ compute / fleet / HPC volume" },
+  { group: "gpu-cloud", name: "Crusoe", ats: "ashby", slug: "crusoe", payTier: 2, hiring: "us-lean", note: "AI data centers + cloud; managed Kubernetes and orchestration teams" },
+  { group: "gpu-cloud", name: "Nebius", ats: "greenhouse", slug: "nebius", payTier: 2, hiring: "multi-region", note: "Neocloud with EU/US/APAC hubs; GPU cluster architects, some India roles" },
+  { group: "gpu-cloud", name: "Together AI", ats: "greenhouse", slug: "togetherai", payTier: 3, hiring: "multi-region", note: "GPU cloud + inference; AI-infrastructure systems roles incl. Bangalore" },
+  { group: "gpu-cloud", name: "Fluidstack", ats: "ashby", slug: "fluidstack", payTier: 2, hiring: "us-lean", note: "Large-scale GPU clusters for labs; data-center architecture roles" },
+  { group: "gpu-cloud", name: "Vultr", ats: "ashby", slug: "vultr", payTier: 1, hiring: "multi-region", note: "Cloud + GPU; many remote roles and an India team" },
+  { group: "gpu-cloud", name: "TensorWave", ats: "ashby", slug: "tensorwave", payTier: 2, hiring: "us-lean", note: "AMD-GPU cloud; remote Kubernetes-platform and network roles" },
+  { group: "gpu-cloud", name: "RunPod", ats: "ashby", slug: "runpod", payTier: 2, hiring: "multi-region", note: "Serverless GPU cloud; fully remote team" },
+  { group: "gpu-cloud", name: "Vast.ai", ats: "ashby", slug: "vastai", payTier: 1, hiring: "us-lean", note: "GPU marketplace; GPU systems / HPC support engineers" },
+  { group: "gpu-cloud", name: "Hyperbolic", ats: "ashby", slug: "hyperbolic", payTier: 2, hiring: "us-lean", note: "GPU cloud + inference; forward-deployed infra roles" },
+  { group: "gpu-cloud", name: "SF Compute", ats: "ashby", slug: "sfcompute", payTier: 2, hiring: "us-lean", note: "GPU compute market; HPC / GPU cluster architects" },
+  { group: "gpu-cloud", name: "Prime Intellect", ats: "ashby", slug: "primeintellect", payTier: 2, hiring: "us-lean", note: "Decentralized training + GPU infra; remote-friendly MTS roles" },
+  { group: "gpu-cloud", name: "DigitalOcean", ats: "greenhouse", slug: "digitalocean98", payTier: 2, hiring: "multi-region", note: "GPU droplets / AI cloud; large India engineering presence" },
+  // Inference & model-serving platforms
+  { group: "inference", name: "Fireworks AI", ats: "ashby", slug: "fireworks", payTier: 3, hiring: "us-lean", note: "Inference cloud; posts bands, MTS infra / training-infra roles" },
+  { group: "inference", name: "Baseten", ats: "ashby", slug: "baseten", payTier: 3, hiring: "us-lean", note: "Inference platform; dedicated-inference, SRE and cloud-platform roles" },
+  { group: "inference", name: "Modal", ats: "ashby", slug: "modal", payTier: 3, hiring: "us-lean", note: "Serverless GPU compute; inference-runtime and platform roles" },
+  { group: "inference", name: "Anyscale", ats: "ashby", slug: "anyscale", payTier: 3, hiring: "multi-region", note: "Ray; distributed LLM inference + platform infra, India team" },
+  { group: "inference", name: "Inferact", ats: "ashby", slug: "inferact", payTier: 3, hiring: "us-lean", note: "vLLM company; remote MTS roles in inference and cloud orchestration" },
+  { group: "inference", name: "RadixArk", ats: "ashby", slug: "radixark", payTier: 2, hiring: "us-lean", note: "SGLang company; inference-engine and serving roles" },
+  { group: "inference", name: "OpenRouter", ats: "ashby", slug: "openrouter", payTier: 2, hiring: "us-lean", note: "LLM routing gateway; remote SRE / provider-operations roles" },
+  { group: "inference", name: "Ollama", ats: "ashby", slug: "ollama", payTier: 2, hiring: "us-lean", note: "Local / self-hosted model runtime" },
+  { group: "inference", name: "Deepgram", ats: "ashby", slug: "deepgram", payTier: 2, hiring: "multi-region", note: "Voice AI; remote Kubernetes / ML-ops infra roles" },
+  { group: "inference", name: "ElevenLabs", ats: "ashby", slug: "elevenlabs", payTier: 2, hiring: "worldwide", note: "Voice AI; distributed team incl. India, inference research engineers" },
+  { group: "inference", name: "Pinecone", ats: "ashby", slug: "pinecone", payTier: 2, hiring: "us-lean", note: "Vector database; US-remote retrieval-infra roles with bands" },
+  // Frontier labs & AI-native products
+  { group: "lab", name: "OpenAI", ats: "ashby", slug: "openai", payTier: 3, hiring: "multi-region", note: "Top-of-market bands; compute, fleet and inference infrastructure" },
+  { group: "lab", name: "Anthropic", ats: "greenhouse", slug: "anthropic", payTier: 3, hiring: "multi-region", note: "Top-of-market comp; data-center, compute and inference infra" },
+  { group: "lab", name: "xAI", ats: "greenhouse", slug: "xai", payTier: 3, hiring: "us-lean", note: "Colossus supercomputer buildout; some roles listed as global" },
+  { group: "lab", name: "Cohere", ats: "ashby", slug: "cohere", payTier: 3, hiring: "multi-region", note: "Enterprise LLMs; inference infrastructure, US/CA/EU" },
+  { group: "lab", name: "Perplexity", ats: "ashby", slug: "perplexity", payTier: 3, hiring: "us-lean", note: "AI inference + AI infrastructure MTS roles with bands" },
+  { group: "lab", name: "Character.AI", ats: "ashby", slug: "character", payTier: 3, hiring: "us-lean", note: "ML infrastructure for very high-QPS serving" },
+  { group: "lab", name: "Thinking Machines", ats: "ashby", slug: "thinkingmachines", payTier: 3, hiring: "us-lean", note: "Frontier lab; inference + infra + post-training SRE, on-site" },
+  { group: "lab", name: "Reka", ats: "ashby", slug: "reka", payTier: 2, hiring: "worldwide", note: "Multimodal lab; remote GPU-performance roles" },
+  { group: "lab", name: "Poolside", ats: "ashby", slug: "poolside", payTier: 3, hiring: "multi-region", note: "Coding models; inference-infrastructure engineering" },
+  { group: "lab", name: "Cognition", ats: "ashby", slug: "cognition", payTier: 3, hiring: "multi-region", note: "Devin; ML infrastructure and infra engineering" },
+  { group: "lab", name: "Cursor (Anysphere)", ats: "ashby", slug: "cursor", payTier: 3, hiring: "multi-region", note: "AI coding; large inference footprint, some India roles" },
+  { group: "lab", name: "Zyphra", ats: "ashby", slug: "zyphra", payTier: 2, hiring: "us-lean", note: "Open models; platform engineering" },
+  // AI silicon
+  { group: "silicon", name: "Cerebras", ats: "ashby", slug: "cerebras", payTier: 3, hiring: "multi-region", note: "Wafer-scale inference cloud; inference-platform + cluster roles, India team" },
+  { group: "silicon", name: "SambaNova", ats: "greenhouse", slug: "sambanovasystems", payTier: 2, hiring: "multi-region", note: "AI chips + cloud; India presence" },
+  { group: "silicon", name: "Etched", ats: "ashby", slug: "etched", payTier: 3, hiring: "us-lean", note: "Transformer ASIC; supercomputing and infra-software roles" },
+  { group: "silicon", name: "Tenstorrent", ats: "greenhouse", slug: "tenstorrent", payTier: 2, hiring: "multi-region", note: "RISC-V AI chips; data-center workload roles, India team" },
+  { group: "silicon", name: "d-Matrix", ats: "ashby", slug: "d-matrix", payTier: 2, hiring: "us-lean", note: "Inference silicon; LLM-inference + platform software" },
+  { group: "silicon", name: "MatX", ats: "ashby", slug: "matx", payTier: 2, hiring: "us-lean", note: "LLM chips; node and cluster-management software" },
+  { group: "silicon", name: "Graphcore", ats: "greenhouse", slug: "graphcore", payTier: 2, hiring: "multi-region", note: "IPU / SoftBank; infrastructure + MLOps roles, India team" },
+  // ML platforms & cloud-native infra
+  { group: "platform", name: "Databricks", ats: "greenhouse", slug: "databricks", payTier: 3, hiring: "multi-region", note: "Mosaic AI / model serving; big Bengaluru hub" },
+  { group: "platform", name: "Scale AI", ats: "greenhouse", slug: "scaleai", payTier: 3, hiring: "us-lean", note: "Frontier AI infrastructure + GenAI platform" },
+  { group: "platform", name: "Cloudflare", ats: "greenhouse", slug: "cloudflare", payTier: 2, hiring: "multi-region", note: "Workers AI — GPU inference at the edge" },
+  { group: "platform", name: "Datadog", ats: "greenhouse", slug: "datadog", payTier: 3, hiring: "multi-region", note: "Observability incl. GPU / LLM monitoring; top infra comp" },
+  { group: "platform", name: "Grafana Labs", ats: "greenhouse", slug: "grafanalabs", payTier: 2, hiring: "worldwide", note: "All-remote; observability stack used across GPU fleets" },
+  { group: "platform", name: "GitLab", ats: "greenhouse", slug: "gitlab", payTier: 2, hiring: "worldwide", note: "All-remote incl. India; AI agent platform + infra" },
+  { group: "platform", name: "Canonical", ats: "greenhouse", slug: "canonical", payTier: 1, hiring: "worldwide", note: "Fully remote; Kubeflow, Charmed Kubernetes, GPU enablement" },
+  { group: "platform", name: "Docker", ats: "ashby", slug: "docker", payTier: 2, hiring: "multi-region", note: "Docker Model Runner, container infra" },
+  { group: "platform", name: "Sysdig", ats: "lever", slug: "sysdig", payTier: 2, hiring: "multi-region", note: "K8s runtime security; AI-platform roles" },
+  { group: "platform", name: "Replit", ats: "ashby", slug: "replit", payTier: 3, hiring: "us-lean", note: "AI app platform; K8s-heavy infra with posted bands" },
+  { group: "platform", name: "Pinterest", ats: "greenhouse", slug: "pinterest", payTier: 3, hiring: "us-lean", note: "US-remote AI-platform and serving-infra roles" },
+  { group: "platform", name: "Reddit", ats: "greenhouse", slug: "reddit", payTier: 3, hiring: "us-lean", note: "US-remote ML platform / serving infra" },
+];
+
+// AI-infra employers whose careers site has no public CORS-open API
+// (Workday, Gem, Workable, custom) — check manually.
 export const EXTRA_TARGETS = [
-  { name: "HashiCorp (IBM)", careers: "https://www.hashicorp.com/careers", note: "Terraform / Vault" },
-  { name: "Red Hat", careers: "https://www.redhat.com/en/jobs", note: "OpenShift; many India-remote reqs" },
-  { name: "SUSE / Rancher", careers: "https://www.suse.com/careers/", note: "Kubernetes-native, distributed teams" },
-  { name: "Automattic", careers: "https://automattic.com/work-with-us/", note: "Fully distributed, hires worldwide" },
-  { name: "1Password", careers: "https://1password.com/careers", note: "Security-first, remote (Ashby board has 0 CORS-listed staff+ matches currently — check manually)" },
-  { name: "Akamai", careers: "https://www.akamai.com/careers", note: "Edge/security infra; India presence" },
-  { name: "Confluent", careers: "https://careers.confluent.io/", note: "Kafka/streaming infra" },
-  { name: "Snowflake", careers: "https://careers.snowflake.com/", note: "Top-of-market data infra comp" },
-  { name: "Palo Alto Networks", careers: "https://jobs.paloaltonetworks.com/", note: "Prisma Cloud; cloud security" },
-  { name: "Teleport", careers: "https://goteleport.com/careers/", note: "Infrastructure access; Zero Trust" },
-  { name: "Snyk", careers: "https://snyk.io/careers/", note: "DevSecOps" },
-  { name: "Chronosphere", careers: "https://chronosphere.io/careers/", note: "Observability; remote-first" },
-  { name: "Temporal", careers: "https://temporal.io/careers", note: "Distributed systems; moved off its public Greenhouse API — check manually" },
+  { name: "NVIDIA", careers: "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite", note: "DGX Cloud, GPU Operator, NIM; large India teams (Bengaluru, Hyderabad, Pune)" },
+  { name: "AMD", careers: "https://careers.amd.com/careers-home/jobs", note: "Instinct GPUs + ROCm; India engineering presence" },
+  { name: "Groq", careers: "https://jobs.gem.com/groq", note: "LPU inference cloud (Gem board)" },
+  { name: "Hugging Face", careers: "https://apply.workable.com/huggingface/", note: "Remote-first; inference endpoints, TGI (Workable board)" },
+  { name: "Mistral AI", careers: "https://mistral.ai/careers", note: "EU frontier lab building its own compute" },
+  { name: "DeepInfra", careers: "https://jobs.gem.com/deep-infra", note: "Inference API; some EU-remote roles (Gem board)" },
+  { name: "Voltage Park", careers: "https://www.voltagepark.com/careers", note: "Non-profit-backed H100 cloud" },
+  { name: "Nscale", careers: "https://www.nscale.com/careers", note: "European AI hyperscaler / data centers" },
+  { name: "Red Hat", careers: "https://www.redhat.com/en/jobs", note: "OpenShift AI, llm-d, vLLM upstream; many India-remote reqs" },
+  { name: "Microsoft (Azure AI infra)", careers: "https://jobs.careers.microsoft.com/global/en/search?q=GPU%20infrastructure", note: "Azure AI supercomputing; India hubs" },
+  { name: "Google (Cloud TPU / GKE)", careers: "https://www.google.com/about/careers/applications/jobs/results/?q=ML%20infrastructure", note: "GKE AI, TPU fleet; India hubs" },
+  { name: "Meta (AI infra)", careers: "https://www.metacareers.com/jobs?q=AI%20infrastructure", note: "Research SuperCluster, inference fleet" },
+  { name: "Oracle (OCI AI)", careers: "https://careers.oracle.com/jobs/#en/sites/jobsearch/requisitions?keyword=GPU", note: "OCI superclusters; large India presence" },
 ];
 
 // Aggregator + community APIs, all verified CORS-open (no key needed).
@@ -185,12 +215,12 @@ export const AGG_ENDPOINTS = {
 
 // One search term per role family, for APIs that take a keyword.
 export const FAMILY_SEARCH_TERMS = {
-  platform: "platform engineer",
-  devops: "devops",
-  sre: "sre",
-  cloud: "cloud architect",
+  inference: "inference",
+  gpu: "gpu",
+  mlinfra: "mlops",
+  datacenter: "data center",
   k8s: "kubernetes",
-  security: "security engineer",
+  platform: "platform engineer",
 };
 
 export const HN_API = {
@@ -210,6 +240,12 @@ export const BOARDS = [
     build: (q) => `https://www.google.com/search?q=${encodeURIComponent(`site:jobs.lever.co ${q}`)}` },
   { id: "ashby-xray", name: "Ashby X-ray", kind: "x-ray", queryType: "boolean", note: "site:jobs.ashbyhq.com across all companies",
     build: (q) => `https://www.google.com/search?q=${encodeURIComponent(`site:jobs.ashbyhq.com ${q}`)}` },
+  { id: "inferencejobs", name: "Inference Jobs", kind: "ai board", queryType: "plain", note: "Board dedicated to inference / GPU-infra roles",
+    build: (q) => `https://www.inferencejobs.com/jobs?q=${encodeURIComponent(q)}` },
+  { id: "aijobs", name: "aijobs.net", kind: "ai board", queryType: "plain", note: "AI/ML jobs, filtered to remote",
+    build: (q) => `https://aijobs.net/?key=${encodeURIComponent(q)}&remote=true` },
+  { id: "a16z", name: "a16z portfolio jobs", kind: "vc board", queryType: "plain", note: "Jobs across a16z's AI portfolio (Mistral, etc.)",
+    build: (q) => `https://jobs.a16z.com/jobs?q=${encodeURIComponent(q)}` },
   { id: "linkedin", name: "LinkedIn Jobs", kind: "board", queryType: "plain", note: "Pre-filtered to Remote",
     build: (q) => `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(q)}&f_WT=2` },
   { id: "remoteok", name: "RemoteOK", kind: "board", queryType: "plain", note: "Remote-only board",
@@ -229,7 +265,7 @@ export const BOARDS = [
 // Remote-scope cheat sheet.
 export const REMOTE_GOOD_PHRASES = [
   "remote worldwide", "global remote", "work from anywhere", "remote — international",
-  "remote — APAC", "remote — EMEA", "remote — LATAM", "anywhere in the world",
+  "remote — APAC", "remote — EMEA", "remote — LATAM", "remote — India", "anywhere in the world",
   "we hire through an EOR (Deel / Remote.com / Oyster)", "contractor — international",
   "async-first / timezone-flexible",
 ];

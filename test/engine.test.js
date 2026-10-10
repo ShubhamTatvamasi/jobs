@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  parseSalaryText, classifyRemote, scopeAllows, safeUrl, stripHtml,
+  ATS_ADAPTERS, parseSalaryText, classifyRemote, scopeAllows, safeUrl, stripHtml,
   buildBooleanQuery, dedupeJobs,
 } from "../src/lib/engine.js";
 
@@ -36,4 +36,17 @@ test("safeUrl and stripHtml are safe", () => {
 test("query builder and dedupe", () => {
   assert.equal(buildBooleanQuery("Staff SRE", ["Kubernetes", "Go", "AWS"], []), '"Staff SRE" (Kubernetes OR Go)');
   assert.equal(dedupeJobs([{ company: "A", title: "X" }, { company: "a ", title: "x" }]).length, 1);
+});
+
+test("Ashby hybrid postings are not treated as remote", () => {
+  const c = { name: "X", slug: "x" };
+  const base = { id: 1, title: "Staff SRE", address: { postalAddress: { addressCountry: "United States" } } };
+  const [hybrid, remote, legacy] = ATS_ADAPTERS.ashby.normalize(c, { jobs: [
+    { ...base, location: "San Jose Office", isRemote: true, workplaceType: "Hybrid" },
+    { ...base, location: "US - Remote", isRemote: true, workplaceType: "Remote" },
+    { ...base, location: "San Jose", isRemote: true },
+  ] });
+  assert.equal(hybrid.remoteClass, "onsite");
+  assert.equal(remote.remoteClass, "us");
+  assert.equal(legacy.remoteClass, "us");
 });

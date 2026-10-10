@@ -3,13 +3,12 @@ import Base from "../layouts/Base.astro";
 import JobPanel from "../components/JobPanel.astro";
 import {
   VERIFIED_ON, DEFAULT_FILTERS, ROLE_FAMILIES, SENIORITY_LEVELS, REMOTE_SCOPES,
-  MIN_SALARY_OPTIONS, SORT_MODES, TITLES, SKILL_CLUSTERS, ATS_COMPANIES, EXTRA_TARGETS,
+  MIN_SALARY_OPTIONS, SORT_MODES, TITLES, SKILL_CLUSTERS, ATS_COMPANIES, COMPANY_GROUPS, EXTRA_TARGETS,
   BOARDS, REMOTE_GOOD_PHRASES, REMOTE_BAD_PHRASES,
 } from "../lib/data.js";
 import { ATS_ADAPTERS, buildBooleanQuery, buildPlainQuery } from "../lib/engine.js";
 
 const boardCount = ATS_COMPANIES.length;
-const atsPlatforms = [...new Set(ATS_COMPANIES.map((c) => c.ats))].length;
 
 const TABS = [
   { id: "scan", label: "Hidden-jobs scan", icon: "◎", jobs: true },
@@ -34,20 +33,25 @@ const defaultSkills = SKILL_CLUSTERS[0].terms;
 const defaultBoolean = buildBooleanQuery(defaultTitle, defaultSkills, []);
 const defaultPlain = buildPlainQuery(defaultTitle, defaultSkills, []);
 
-const companies = [...ATS_COMPANIES].sort((a, b) => b.payTier - a.payTier || a.name.localeCompare(b.name));
+const companyGroups = COMPANY_GROUPS.map((g) => ({
+  ...g,
+  companies: ATS_COMPANIES.filter((c) => c.group === g.id)
+    .sort((a, b) => b.payTier - a.payTier || a.name.localeCompare(b.name)),
+}));
 
 const tips = [
-  ["Scan weekly, apply same-day.", "ATS-direct roles get hundreds of applicants within 48 hours of syndication to LinkedIn — here you see them the moment they hit the company board."],
-  ["Salary data is leverage.", "Ashby boards publish real bands (shown on every row). Cross-check any offer against levels.fyi before negotiating."],
-  ["“US-remote” isn't a closed door.", "Many companies hire international candidates as contractors or through EORs (Deel, Remote.com, Oyster) when the candidate is strong. Staff/Principal-level skills justify asking."],
-  ["HN thread = founder access.", "Replies there go straight to hiring managers and founders — no ATS black hole. A new thread opens on the 1st of each month."],
-  ["Lead with your differentiators.", "Concrete scale (clusters run, migrations led, costs or incidents cut) and visible open-source or community work separate a Staff+ résumé from the pile."],
+  ["Don't filter AI labs by level.", "Fireworks, Modal, Perplexity, Prime Intellect and the vLLM / SGLang startups post “Member of Technical Staff” or unlevelled titles and level you after the loop. The default “Staff+ or unlevelled” seniority keeps them in view."],
+  ["Search by the vocabulary they use.", "Postings say “inference infrastructure”, “fleet engineering”, “compute foundations”, “cluster orchestration”, “bare-metal provisioning”, “GPU cluster architect” — rarely “DevOps”. Use these in the Deep links tab."],
+  ["Show the GPU failure modes you've handled.", "Interviews at GPU clouds probe fleet health, GPU burn-in and qualification, Kubernetes + Slurm scheduling, NCCL / InfiniBand issues and node remediation. Concrete incidents beat tool lists."],
+  ["Bands are high — and posted.", "Staff-level US base ranges seen on live postings: roughly $185k–$300k at neoclouds (CoreWeave, Crusoe, Together), $320k–$485k at frontier labs. Ashby boards show bands on every row here; cross-check on levels.fyi."],
+  ["India is on the map.", "Together AI, Nebius, Databricks, Anyscale, Cerebras, NVIDIA, Red Hat and Oracle hire AI-infra engineers in India; switch Remote scope to 🇮🇳 India-eligible. For US-remote roles, ask about contractor or EOR hiring."],
+  ["HN thread = founder access.", "Inference and GPU-cloud startups post in the monthly “Who is hiring?” thread; replies reach founders directly. A new thread opens on the 1st of each month."],
 ];
 ---
 
 <Base
   title="Hidden Jobs Engine"
-  description={`Live Staff/Principal platform roles straight from ${boardCount} company ATS boards, with posted salary bands.`}
+  description={`Live AI-infrastructure roles — inference, GPU clusters, data centers, Kubernetes — straight from ${boardCount} company hiring boards, with posted salary bands.`}
 >
   <header class="topbar">
     <div class="topbar-inner">
@@ -68,15 +72,15 @@ const tips = [
 
   <div class="shell">
     <section class="hero">
-      <p class="eyebrow">Staff · Principal · Distinguished</p>
-      <h1>Platform roles, <em>straight from the source.</em></h1>
+      <p class="eyebrow">Inference · GPU clusters · Kubernetes</p>
+      <h1>AI infrastructure roles, <em>straight from the source.</em></h1>
       <p class="hero-sub">
-        Scans company hiring systems directly from your browser — before roles are syndicated to job boards,
-        with real salary bands where the company publishes them.
+        Scans the hiring boards of GPU clouds, inference platforms, frontier labs and AI-chip makers directly
+        from your browser — before roles are syndicated to job boards, with real salary bands where published.
       </p>
       <dl class="stats">
-        <div><dt>ATS boards</dt><dd>{boardCount}</dd></div>
-        <div><dt>ATS platforms</dt><dd>{atsPlatforms}</dd></div>
+        <div><dt>AI-infra employers</dt><dd>{boardCount}</dd></div>
+        <div><dt>Categories</dt><dd>{COMPANY_GROUPS.length}</dd></div>
         <div><dt>Remote boards</dt><dd>3</dd></div>
         <div><dt>Backend</dt><dd>None</dd></div>
       </dl>
@@ -131,7 +135,7 @@ const tips = [
             </label>
             <label class="field">
               <span>Boost keywords</span>
-              <input id="keywordsInput" type="text" placeholder="Post-Quantum, GitOps, Airflow" autocomplete="off" />
+              <input id="keywordsInput" type="text" placeholder="vLLM, InfiniBand, Slurm" autocomplete="off" />
             </label>
           </div>
         </details>
@@ -141,7 +145,7 @@ const tips = [
         <JobPanel
           id="scan"
           title="Hidden-jobs scan"
-          lede={`Straight from ${boardCount} company ATS APIs — Greenhouse, Ashby, Lever and SmartRecruiters. No middleman.`}
+          lede={`Straight from ${boardCount} AI-infrastructure employers' hiring APIs (Greenhouse, Ashby, Lever). No middleman.`}
           action="Scan all boards"
           active
         />
@@ -174,7 +178,7 @@ const tips = [
             </label>
             <label class="field">
               <span>Extra keywords</span>
-              <input id="extraKeywords" type="text" placeholder="Post-Quantum, Zero Trust, Go" autocomplete="off" />
+              <input id="extraKeywords" type="text" placeholder="NCCL, Kueue, H100" autocomplete="off" />
             </label>
             <fieldset class="field span-2">
               <legend>Skill focus</legend>
@@ -203,28 +207,31 @@ const tips = [
         <section id="tab-companies" class="panel" data-tab-panel="companies" hidden>
           <header class="panel-head">
             <div>
-              <h2>Scannable high-pay targets</h2>
+              <h2>AI-infrastructure employers</h2>
               <p class="lede">Every card opens the company's live ATS board. <span class="mono">$$$$</span> is top-of-market pay; open-role counts appear after a scan. Hiring hints are a rough guide — always read each posting's location line.</p>
             </div>
           </header>
-          <div class="company-grid">
-            {companies.map((c) => (
-              <a class="company-card" href={ATS_ADAPTERS[c.ats].boardUrl(c)} target="_blank" rel="noopener noreferrer" data-slug={c.slug}>
-                <span class="company-top">
-                  <span class="monogram" aria-hidden="true">{c.name[0]}</span>
-                  <span class="company-name">{c.name}</span>
-                  <span class="pay" title={`Pay tier ${c.payTier} of 3`}>{"$".repeat(c.payTier + 1)}</span>
-                </span>
-                <span class="company-note">{c.note}</span>
-                <span class="pills">
-                  <span class={`pill hiring-${c.hiring}`}>{HIRING_LABEL[c.hiring]}</span>
-                  <span class="pill dim">{c.ats}</span>
-                  <span class="pill dim" data-roles hidden></span>
-                </span>
-              </a>
-            ))}
-          </div>
-          <h3 class="subhead">More high-pay targets <span class="muted">— no public ATS API, check manually</span></h3>
+          {companyGroups.map((g) => (
+            <h3 class="subhead group-head">{g.label} <span class="muted">· {g.companies.length}</span></h3>
+            <div class="company-grid">
+              {g.companies.map((c) => (
+                <a class="company-card" href={ATS_ADAPTERS[c.ats].boardUrl(c)} target="_blank" rel="noopener noreferrer" data-slug={c.slug}>
+                  <span class="company-top">
+                    <span class="monogram" aria-hidden="true">{c.name[0]}</span>
+                    <span class="company-name">{c.name}</span>
+                    <span class="pay" title={`Pay tier ${c.payTier} of 3`}>{"$".repeat(c.payTier + 1)}</span>
+                  </span>
+                  <span class="company-note">{c.note}</span>
+                  <span class="pills">
+                    <span class={`pill hiring-${c.hiring}`}>{HIRING_LABEL[c.hiring]}</span>
+                    <span class="pill dim">{c.ats}</span>
+                    <span class="pill dim" data-roles hidden></span>
+                  </span>
+                </a>
+              ))}
+            </div>
+          ))}
+          <h3 class="subhead">Also hiring AI infra <span class="muted">— no public job API, check manually</span></h3>
           <div class="company-grid">
             {EXTRA_TARGETS.map((c) => (
               <a class="company-card" href={c.careers} target="_blank" rel="noopener noreferrer">
@@ -242,7 +249,7 @@ const tips = [
           <header class="panel-head">
             <div>
               <h2>Playbook</h2>
-              <p class="lede">Landing a high-paying remote role, wherever you're based.</p>
+              <p class="lede">Landing a senior AI-infrastructure role — inference, GPU clusters, ML platforms — wherever you're based.</p>
             </div>
           </header>
           <ol class="tips">

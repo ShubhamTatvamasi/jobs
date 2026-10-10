@@ -206,13 +206,16 @@ const ATS_ADAPTERS = {
           const comp = j.compensation || {};
           const salaryText = comp.scrapeableCompensationSalarySummary || "";
           const country = j.address && j.address.postalAddress && j.address.postalAddress.addressCountry;
+          // Ashby sets isRemote=true for Hybrid postings too; workplaceType is
+          // the reliable signal when present.
+          const isRemote = j.workplaceType ? j.workplaceType === "Remote" : !!j.isRemote;
           return {
             id: `ab-${c.slug}-${j.id}`,
             title: j.title || "",
             company: c.name,
             url: j.jobUrl || this.boardUrl(c),
             location: loc,
-            remoteClass: classifyRemote(loc, { isRemote: !!j.isRemote, country }),
+            remoteClass: classifyRemote(loc, { isRemote, country }),
             regions: remoteRegions(loc, { country }),
             salaryText,
             salaryMax: parseSalaryText(salaryText),
@@ -390,7 +393,7 @@ function HN_API_ITEM_URL(id) {
 
 // --- matching / filtering / sorting -------------------------
 
-// ctx: { families: [{key,re}], seniorityRe, scope, minSalary, keywords: [..] }
+// ctx: { families: [{key,re,boost?}], seniorityRe (anything with .test), scope, minSalary, keywords: [..] }
 function jobHaystack(job) {
   return `${job.title} ${job.dept} ${(job.tags || []).join(" ")} ${job.snippet || ""}`.toLowerCase();
 }
@@ -405,7 +408,7 @@ function scoreJob(job, ctx) {
   let score = 0;
   const families = ctx.families || [];
   for (const f of families) {
-    if (f.re.test(job.title)) score += 3;
+    if (f.re.test(job.title)) score += 3 + (f.boost || 0);
     else if (f.re.test(jobHaystack(job))) score += 1;
   }
   if (ctx.seniorityRe && ctx.seniorityRe.test(job.title)) score += 2;
