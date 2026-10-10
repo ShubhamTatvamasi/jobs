@@ -158,19 +158,37 @@ button, input, select { font: inherit; color: inherit; }
 }
 .brand-thin { font-weight: 400; color: var(--ink-2); }
 
-.icon-btn {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
+.theme-switch {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  padding: 3px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--bg-raised);
-  color: var(--ink-2);
-  margin-left: auto;
+}
+.theme-switch button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 28px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink-3);
   cursor: pointer;
 }
-.icon-btn:hover { color: var(--ink); border-color: var(--line-strong); }
+.theme-switch button:hover { color: var(--ink); }
+.theme-switch button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 
 /* ---------- hero ---------- */
 

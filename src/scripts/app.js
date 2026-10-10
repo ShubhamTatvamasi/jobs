@@ -74,14 +74,27 @@ function toggleChip(chip, set, key) {
 
 // ---------- theme ----------
 
+// "system" clears the override so the CSS follows prefers-color-scheme.
+function applyTheme(choice) {
+  const root = document.documentElement;
+  if (choice === "light" || choice === "dark") root.dataset.theme = choice;
+  else delete root.dataset.theme;
+  document.querySelectorAll("[data-theme-choice]").forEach((b) => {
+    b.setAttribute("aria-pressed", String(b.dataset.themeChoice === (root.dataset.theme || "system")));
+  });
+}
+
 function initTheme() {
-  $("themeBtn").addEventListener("click", () => {
-    const root = document.documentElement;
-    const current = root.dataset.theme
-      || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
-    const next = current === "light" ? "dark" : "light";
-    root.dataset.theme = next;
-    try { localStorage.setItem("hje-theme", next); } catch (e) { /* optional */ }
+  applyTheme(document.documentElement.dataset.theme || "system");
+  document.querySelectorAll("[data-theme-choice]").forEach((b) => {
+    b.addEventListener("click", () => {
+      const choice = b.dataset.themeChoice;
+      applyTheme(choice);
+      try {
+        if (choice === "system") localStorage.removeItem("hje-theme");
+        else localStorage.setItem("hje-theme", choice);
+      } catch (e) { /* optional */ }
+    });
   });
 }
 
